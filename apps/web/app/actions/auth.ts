@@ -1,28 +1,19 @@
 "use server"
 
 import {
-  loginUser,
-  registerUser,
-  type AuthResponseBody,
-  type PublicUser,
-} from "@workspace/api/service"
-import {
   createSession,
   destroySession,
   type SessionPayload,
 } from "@/lib/session"
+import { login, register } from "@/lib/auth-client"
+import type { AuthResponseBody, PublicUser } from "@workspace/api/service"
 
 /**
- * Server Actions for the auth spine (ADR-0003). They authenticate against the
- * mock backend (`@workspace/api`), mint a signed httpOnly session cookie, and
- * return the access token/identity so Refine's authProvider can hold them in
- * memory. Navigation is left to the client (Refine) so these stay pure
- * returners.
- *
- * The mock backend is an in-memory store in the server process, so register →
- * login round-trips the same process. That is intentional for the mock stage;
- * the FastAPI backend will replace it, and the cookie carries identity so the
- * server never re-looks-up the user after login.
+ * Server Actions for the auth spine (ADR-0003). They authenticate via
+ * `lib/auth-client` (real backend when `API_URL` is set, otherwise the
+ * in-process mock), mint a signed httpOnly session cookie, and return the
+ * access token/identity so Refine's authProvider can hold them in memory.
+ * Navigation is left to the client (Refine) so these stay pure returners.
  */
 
 export type AuthSuccess = {
@@ -63,7 +54,7 @@ export async function loginAction(input: {
   email: string
   password: string
 }): Promise<AuthActionResult> {
-  const result = await loginUser(input.email, input.password)
+  const result = await login(input.email, input.password)
   if (result.status !== 200 || !isAuthResponse(result.body)) {
     return { success: false, error: "Invalid email or password." }
   }
@@ -80,7 +71,7 @@ export async function registerAction(input: {
   email: string
   password: string
 }): Promise<AuthActionResult> {
-  const result = await registerUser(input.name, input.email, input.password)
+  const result = await register(input.name, input.email, input.password)
   if (result.status === 409) {
     return {
       success: false,

@@ -19,6 +19,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // No real backend URL → run against the in-browser mock.
+  const mockMode = !process.env.API_URL
+
   return (
     <html
       lang="en"
@@ -27,7 +30,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <Providers>{children}</Providers>
+          <Providers mockMode={mockMode}>{children}</Providers>
         </ThemeProvider>
       </body>
     </html>

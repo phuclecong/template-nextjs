@@ -135,11 +135,16 @@ function TasksTable() {
 
   const columns = useMemo<ColumnDef<TaskRow>[]>(
     () => [
-      { accessorKey: "title", header: "Title" },
-      { accessorKey: "status", header: "Status" },
-      { accessorKey: "priority", header: "Priority" },
-      { accessorKey: "assigneeName", header: "Assignee", enableSorting: false },
-      { accessorKey: "dueDate", header: "Due date" },
+      { accessorKey: "title", header: "Title", size: 360 },
+      { accessorKey: "status", header: "Status", size: 120 },
+      { accessorKey: "priority", header: "Priority", size: 120 },
+      {
+        accessorKey: "assigneeName",
+        header: "Assignee",
+        size: 180,
+        enableSorting: false,
+      },
+      { accessorKey: "dueDate", header: "Due date", size: 140 },
     ],
     []
   )
@@ -238,10 +243,16 @@ function TasksTable() {
           ref={containerRef}
           className="h-[60vh] overflow-auto border border-border"
         >
-          <table className="w-full border-collapse text-left">
-            <thead className="sticky top-0 bg-background">
+          <table className="w-full text-left" style={{ display: "grid" }}>
+            <thead
+              className="bg-background"
+              style={{ display: "grid", position: "sticky", top: 0, zIndex: 1 }}
+            >
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
+                <tr
+                  key={headerGroup.id}
+                  style={{ display: "flex", width: "100%" }}
+                >
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
@@ -250,7 +261,8 @@ function TasksTable() {
                           ? header.column.getToggleSortingHandler()
                           : undefined
                       }
-                      className={`border-b border-border px-3 py-2 font-medium ${
+                      style={{ display: "flex", width: header.getSize() }}
+                      className={`items-center gap-1 border-b border-border px-3 py-2 font-medium ${
                         header.column.getCanSort() ? "cursor-pointer" : ""
                       }`}
                     >
@@ -260,8 +272,8 @@ function TasksTable() {
                       )}
                       {header.column.getIsSorted()
                         ? header.column.getIsSorted() === "asc"
-                          ? " ↑"
-                          : " ↓"
+                          ? "↑"
+                          : "↓"
                         : null}
                     </th>
                   ))}
@@ -270,8 +282,9 @@ function TasksTable() {
             </thead>
             <tbody
               style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
+                display: "grid",
                 position: "relative",
+                height: `${rowVirtualizer.getTotalSize()}px`,
               }}
             >
               {virtualItems.map((virtualRow) => {
@@ -281,16 +294,22 @@ function TasksTable() {
                   <tr
                     key={row.id}
                     style={{
+                      display: "flex",
                       position: "absolute",
                       top: 0,
                       transform: `translateY(${virtualRow.start}px)`,
                       height: `${virtualRow.size}px`,
+                      width: "100%",
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className="border-b border-border px-3 py-2 align-middle"
+                        style={{
+                          display: "flex",
+                          width: cell.column.getSize(),
+                        }}
+                        className="items-center border-b border-border px-3 py-2"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,

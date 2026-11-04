@@ -25,7 +25,13 @@ const MswGate = dynamic(
  * Single Refine backbone (ADR-0002): every cross-cutting provider is wired
  * here — data, auth, access-control, notifications, i18n, and audit-log.
  */
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  mockMode,
+  children,
+}: {
+  mockMode: boolean
+  children: React.ReactNode
+}) {
   const [queryClient] = useState(() => new QueryClient())
 
   return (
@@ -41,7 +47,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           auditLogProvider={auditLogProvider}
           options={{ syncWithLocation: true, disableTelemetry: true }}
         >
-          <MswGate>{children}</MswGate>
+          <MswGate mockMode={mockMode}>{children}</MswGate>
         </Refine>
       </Suspense>
     </QueryClientProvider>
