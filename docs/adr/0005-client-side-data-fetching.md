@@ -1,0 +1,3 @@
+# Client-side data fetching via Refine hooks, thin server components
+
+Pages fetch data client-side through Refine hooks (`useList`/`useTable`) inside client components; Server Components stay thin (root layout, metadata, and `proxy.ts`/DAL route gating). Chosen over server-rendering the first data (RSC awaiting `dataProvider`) because the core surface — a virtualized table with live debounced search — is inherently client-side, and an authenticated dashboard with minimal SEO gains nothing from server-rendering a window of a virtualized list. Deviates from Next's "server components by default".
