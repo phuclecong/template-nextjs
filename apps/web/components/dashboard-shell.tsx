@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useGetIdentity, useLogout } from "@refinedev/core"
 import { Button } from "@workspace/ui/components/button"
 
@@ -43,9 +44,11 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
           Sign out
         </Button>
       </header>
-      <p className="text-sm text-muted-foreground">
-        Protected shell. Data views land in the next issue.
-      </p>
+      <nav>
+        <Link href="/dashboard/tasks" className="text-primary underline">
+          Tasks
+        </Link>
+      </nav>
     </main>
   )
 }

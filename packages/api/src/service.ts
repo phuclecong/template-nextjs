@@ -1,5 +1,10 @@
 import { signToken, verifyToken } from "./auth"
-import { users, type Role, type UserEntity } from "./collections"
+import {
+  ensureSeedUsers,
+  users,
+  type Role,
+  type UserEntity,
+} from "./collections"
 
 /**
  * The mock backend's business logic, shared by the MSW handlers (browser +
@@ -95,10 +100,16 @@ export async function registerUser(
   return { status: 201, body: authResponse(user) }
 }
 
-export function loginUser(email: unknown, password: unknown): ServiceResult {
+export async function loginUser(
+  email: unknown,
+  password: unknown
+): Promise<ServiceResult> {
   if (typeof email !== "string" || typeof password !== "string") {
     return error("invalid_request", "email and password are required.", 400)
   }
+  // The mock's demo accounts must exist server-side for login even when the
+  // store already holds a freshly registered user.
+  await ensureSeedUsers()
   const normalizedEmail = email.toLowerCase()
   const user = users.findFirst((query) =>
     query.where({ email: normalizedEmail })

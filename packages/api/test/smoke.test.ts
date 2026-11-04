@@ -192,10 +192,37 @@ describe("tasks", () => {
     const res = await api("/api/tasks", { token: accessToken })
     expect(res.status).toBe(200)
     const list = (await res.json()) as Array<{ title: string; status: string }>
-    expect(list.length).toBe(2)
+    expect(list.length).toBe(150)
     expect(list.map((task) => task.title)).toContain(
       "Author the OpenAPI contract"
     )
+  })
+
+  it("filters, sorts, and paginates tasks via query params", async () => {
+    const { accessToken } = await login("member@example.com", "memberpass")
+
+    const filtered = await api("/api/tasks?q=author&_start=0&_end=10", {
+      token: accessToken,
+    })
+    expect(filtered.status).toBe(200)
+    const filteredList = (await filtered.json()) as Array<{ title: string }>
+    expect(filteredList).toHaveLength(1)
+    expect(filteredList[0]?.title).toBe("Author the OpenAPI contract")
+    expect(filtered.headers.get("x-total-count")).toBe("1")
+
+    const page = await api(
+      "/api/tasks?_start=0&_end=5&_sort=title&_order=asc",
+      { token: accessToken }
+    )
+    expect(page.status).toBe(200)
+    const pageList = (await page.json()) as Array<{ title: string }>
+    expect(pageList).toHaveLength(5)
+    expect(page.headers.get("x-total-count")).toBe("150")
+
+    const sorted = [...pageList.map((task) => task.title)].sort((a, b) =>
+      a.localeCompare(b)
+    )
+    expect(pageList.map((task) => task.title)).toEqual(sorted)
   })
 
   it("creates a task assigned to the creator", async () => {

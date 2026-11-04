@@ -1,5 +1,6 @@
 export { handlers, specHandlers } from "./handlers"
-export { resetDb, tasks, users } from "./collections"
+export { dataHandlers } from "./data-handlers"
+export { ensureSeedUsers, resetDb, seedDb, tasks, users } from "./collections"
 export {
   getUserByAccessToken,
   loginUser,
