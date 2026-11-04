@@ -1,0 +1,42 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS: register a custom variant in CSS"
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS: specify source paths for content detection"
+    },
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS: define theme variables"
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS: register a custom utility"
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS: register a custom variant"
+    },
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS: load a JavaScript plugin"
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS: inline existing utilities into a custom rule"
+    },
+    {
+      "name": "@reference",
+      "description": "Tailwind CSS: import a stylesheet without emitting styles"
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS: specify an alternate config file"
+    }
+  ],
+  "properties": []
+}
