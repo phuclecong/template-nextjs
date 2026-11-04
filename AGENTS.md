@@ -1,7 +1,9 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
 
 ## Agent skills
@@ -17,3 +19,7 @@ Default five canonical roles: `needs-triage`, `needs-info`, `ready-for-agent`, `
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Final step: do not auto commit or push code to git
+
+Keep generated commit message but do not commit or push code automatically, I need to have a final review.
