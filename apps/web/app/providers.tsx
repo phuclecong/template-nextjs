@@ -5,6 +5,7 @@ import routerProvider from "@refinedev/nextjs-router/app"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import dynamic from "next/dynamic"
 import { Suspense, useState } from "react"
+import { Toaster } from "sonner"
 
 import { authProvider } from "@/providers/auth-provider"
 import { accessControlProvider } from "@/providers/access-control-provider"
@@ -50,6 +51,7 @@ export function Providers({
           <MswGate mockMode={mockMode}>{children}</MswGate>
         </Refine>
       </Suspense>
+      <Toaster position="bottom-right" richColors />
     </QueryClientProvider>
   )
 }

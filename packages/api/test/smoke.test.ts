@@ -244,6 +244,18 @@ describe("tasks", () => {
     expect(task.status).toBe("todo")
   })
 
+  it("creates an unassigned task when assigneeId is null", async () => {
+    const { accessToken } = await login("member@example.com", "memberpass")
+    const res = await api("/api/tasks", {
+      method: "POST",
+      token: accessToken,
+      body: { title: "Unassigned task", assigneeId: null },
+    })
+    expect(res.status).toBe(201)
+    const task = (await res.json()) as { assigneeId: string | null }
+    expect(task.assigneeId).toBeNull()
+  })
+
   it("lets a member update their own task", async () => {
     const { accessToken } = await login("member@example.com", "memberpass")
     const res = await api("/api/tasks/tsk_002", {

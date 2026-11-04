@@ -1,17 +1,23 @@
 import type { NotificationProvider } from "@refinedev/core"
+import { toast } from "sonner"
 
 /**
- * Refine notificationProvider (ADR-0002). Minimal wiring: forwards to the
- * console until a real toast surface (e.g. sonner) lands with the UI polish
- * work. Keeping the interface real means no call-site changes are needed then.
+ * Refine notificationProvider (ADR-0002). Wires Refine's notification bus to
+ * sonner toasts, so data-hook mutations surface success/error feedback without
+ * touching call sites.
  */
 export const notificationProvider: NotificationProvider = {
   open: ({ message, type, description }) => {
-    if (type === "error") {
-      console.error(`[refine:${type}] ${message}`, description ?? "")
+    const options = description ? { description } : undefined
+    if (type === "success") {
+      toast.success(message, options)
+    } else if (type === "error") {
+      toast.error(message, options)
     } else {
-      console.log(`[refine:${type}] ${message}`, description ?? "")
+      toast(message, options)
     }
   },
-  close: () => {},
+  close: (key) => {
+    toast.dismiss(key)
+  },
 }

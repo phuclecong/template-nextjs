@@ -230,7 +230,11 @@ export const dataHandlers = [
       status: isStatus(body.status) ? body.status : "todo",
       priority: isPriority(body.priority) ? body.priority : null,
       assigneeId:
-        typeof body.assigneeId === "string" ? body.assigneeId : actor.id,
+        body.assigneeId === null
+          ? null
+          : typeof body.assigneeId === "string"
+            ? body.assigneeId
+            : actor.id,
       dueDate: typeof body.dueDate === "string" ? body.dueDate : null,
       createdAt: timestamp,
       updatedAt: timestamp,
