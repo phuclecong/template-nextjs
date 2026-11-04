@@ -1,0 +1,28 @@
+- Pages:
+  - User: authentication, login, register, role...
+  - Tasks: table, search with suggestion, ensure performance optimization with: vitualization, memorization, debouncing when search input
+  - Setting: theme, language, update password
+- Architecture and UI:
+  - Build scalable component systems and a reusable UI architecture
+  - Ensure performance (Core Web Vitals), SEO and accessibility
+- Technical requirements (frameworks, libraries, and tools):
+  - Refine Core (https://github.com/refinedev/refine, https://refine.dev/core/docs/data/packages/simple-rest/): dataProvider, authProvider, accessControlProvider, notificationProvider, i18nProvider, auditLogProvider, ...
+  - NextJS, React, TypeScript
+  - TailwindCSS, shadcn/ui
+  - TanStack Query, TanStack Table
+  - zustand, zod
+  - Vitest, Playwright, Storybook
+  - ...
+- Mock APIs (mswjs):
+  - Data-driven servers: https://mswjs.io/ecosystem/serve/recipes/data-driven-servers
+  - OpenAPI (Swagger): https://mswjs.io/ecosystem/source/integrations/open-api
+  - Generate OpenAPI (Swagger) so we can handover to Backend (FastAPI https://fastapi.tiangolo.com/).
+- Strategies:
+  - Integration with the backend (API contracts, data fetching)
+  - Localization and internationalization: language support and currency formatting
+  - Performance optimization and scalability: code splitting, lazy loading, image optimization, virtualization, memorization
+  - Security: authentication, authorization, and data protection
+  - Testing and quality assurance: unit, integration, and end-to-end tests, test coverage, code quality metrics, and CI/CD pipelines practices
+  - Performance monitoring and error handling: error boundaries, logging, and user feedback
+  - Analytics and tracking: user behavior and conversion tracking
+  - Deployment and hosting: versioning, release/backward-compatibility, CI/CD pipelines, serverless architecture, CDN usage, and environment configuration
