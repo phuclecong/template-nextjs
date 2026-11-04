@@ -1,4 +1,4 @@
-import type { Role } from "./collections.js"
+import type { Role } from "./collections"
 
 export interface TokenClaims {
   sub: string

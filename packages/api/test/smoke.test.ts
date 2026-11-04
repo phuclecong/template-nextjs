@@ -8,7 +8,7 @@ import {
   it,
 } from "vitest"
 import { setupServer } from "msw/node"
-import { handlers, resetDb } from "../src/index.js"
+import { handlers, resetDb } from "../src/index"
 
 const server = setupServer(...handlers)
 

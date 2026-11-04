@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs"
 import { fromOpenApi } from "@msw/source/open-api"
 import { http, HttpResponse, type JsonBodyType } from "msw"
-import { signToken, verifyToken } from "./auth.js"
 import {
   tasks,
   users,
@@ -9,7 +8,15 @@ import {
   type TaskPriority,
   type TaskStatus,
   type UserEntity,
-} from "./collections.js"
+} from "./collections"
+import {
+  getUserByAccessToken,
+  loginUser,
+  refreshAccessToken,
+  registerUser,
+  toPublicUser,
+  type ServiceResult,
+} from "./service"
 
 // The OpenAPI spec is the single source of truth. `fromOpenApi` generates a
 // handler for every documented operation, which serves as the spec-derived
@@ -40,30 +47,16 @@ function fail(code: string, message: string, status: number): Response {
   return HttpResponse.json({ code, message }, { status })
 }
 
-function toPublicUser(user: UserEntity) {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    createdAt: user.createdAt,
-  }
-}
-
-function authResponse(user: UserEntity) {
-  return {
-    accessToken: signToken({ sub: user.id, role: user.role, type: "access" }),
-    refreshToken: signToken({ sub: user.id, role: user.role, type: "refresh" }),
-    user: toPublicUser(user),
-  }
+function respond(result: ServiceResult): Response {
+  return ok(result.body, result.status)
 }
 
 function getAuthUser(request: Request): UserEntity | null {
   const header = request.headers.get("authorization")
-  if (!header?.startsWith("Bearer ")) return null
-  const claims = verifyToken(header.slice("Bearer ".length))
-  if (!claims || claims.type !== "access") return null
-  return users.findFirst((query) => query.where({ id: claims.sub })) ?? null
+  const token = header?.startsWith("Bearer ")
+    ? header.slice("Bearer ".length)
+    : null
+  return getUserByAccessToken(token)
 }
 
 function pathParam(
@@ -94,68 +87,17 @@ const dataHandlers = [
   // ---- auth ----
   http.post("*/api/auth/register", async ({ request }) => {
     const body = await readJson(request)
-    if (
-      !body ||
-      typeof body.name !== "string" ||
-      typeof body.email !== "string" ||
-      typeof body.password !== "string"
-    ) {
-      return fail(
-        "invalid_request",
-        "name, email and password are required.",
-        400
-      )
-    }
-    const email = body.email.toLowerCase()
-    if (users.findFirst((query) => query.where({ email }))) {
-      return fail(
-        "email_taken",
-        "An account with this email already exists.",
-        409
-      )
-    }
-    const user = await users.create({
-      id: `usr_${crypto.randomUUID()}`,
-      name: body.name,
-      email,
-      role: "member",
-      password: body.password,
-      createdAt: new Date().toISOString(),
-    })
-    return ok(authResponse(user), 201)
+    return respond(await registerUser(body?.name, body?.email, body?.password))
   }),
 
   http.post("*/api/auth/login", async ({ request }) => {
     const body = await readJson(request)
-    if (
-      !body ||
-      typeof body.email !== "string" ||
-      typeof body.password !== "string"
-    ) {
-      return fail("invalid_request", "email and password are required.", 400)
-    }
-    const email = body.email.toLowerCase()
-    const user = users.findFirst((query) => query.where({ email }))
-    if (!user || user.password !== body.password) {
-      return fail("invalid_credentials", "Incorrect email or password.", 401)
-    }
-    return ok(authResponse(user))
+    return respond(loginUser(body?.email, body?.password))
   }),
 
   http.post("*/api/auth/refresh", async ({ request }) => {
     const body = await readJson(request)
-    if (!body || typeof body.refreshToken !== "string") {
-      return fail("invalid_request", "refreshToken is required.", 400)
-    }
-    const claims = verifyToken(body.refreshToken)
-    if (!claims || claims.type !== "refresh") {
-      return fail("unauthorized", "Invalid refresh token.", 401)
-    }
-    const user = users.findFirst((query) => query.where({ id: claims.sub }))
-    if (!user) return fail("unauthorized", "Invalid refresh token.", 401)
-    return ok({
-      accessToken: signToken({ sub: user.id, role: user.role, type: "access" }),
-    })
+    return respond(refreshAccessToken(body?.refreshToken))
   }),
 
   http.post("*/api/auth/logout", ({ request }) => {

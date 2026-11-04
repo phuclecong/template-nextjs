@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from "vitest"
-import type { components } from "../src/generated/api.js"
+import type { components } from "../src/generated/api"
 
 describe("generated client types", () => {
   it("matches the contract for User and Task", () => {

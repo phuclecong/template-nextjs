@@ -1,5 +1,13 @@
-export { handlers, specHandlers } from "./handlers.js"
-export { resetDb, tasks, users } from "./collections.js"
+export { handlers, specHandlers } from "./handlers"
+export { resetDb, tasks, users } from "./collections"
+export {
+  getUserByAccessToken,
+  loginUser,
+  refreshAccessToken,
+  registerUser,
+  toPublicUser,
+} from "./service"
+export type { AuthResponseBody, PublicUser, ServiceResult } from "./service"
 export type {
   Role,
   TaskEntity,
@@ -8,5 +16,5 @@ export type {
   TaskStatus,
   UserEntity,
   UserRecord,
-} from "./collections.js"
-export type { TokenClaims } from "./auth.js"
+} from "./collections"
+export type { TokenClaims } from "./auth"
