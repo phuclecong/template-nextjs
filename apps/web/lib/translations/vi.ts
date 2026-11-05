@@ -9,12 +9,18 @@ export const vi: Translation = {
   },
   shell: {
     title: "Bảng điều khiển",
-    signedInAs: "Đã đăng nhập với tư cách",
     signOut: "Đăng xuất",
+    toggleSidebar: "Chuyển đổi thanh bên",
+    sidebar: "Thanh bên",
+    sidebarDescription: "Hiển thị thanh bên trên thiết bị di động.",
     nav: {
       tasks: "Công việc",
       users: "Người dùng",
       settings: "Cài đặt",
+    },
+    section: {
+      manage: "Quản lý",
+      preferences: "Tùy chọn",
     },
   },
   login: {

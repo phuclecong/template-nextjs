@@ -62,6 +62,9 @@ importers:
       jose:
         specifier: ^6.2.15
         version: 6.2.15
+      lucide-react:
+        specifier: ^1.64.0
+        version: 1.68.0(@types/react@19.2.15)(react@19.2.4)
       msw:
         specifier: ^3.0.3
         version: 3.0.3(@types/node@20.19.41)(typescript@5.9.3)(vite@8.3.5(@types/node@20.19.41)(jiti@2.7.0)(yaml@2.9.1))

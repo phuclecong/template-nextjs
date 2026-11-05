@@ -1,12 +1,6 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login")
-  await page.getByLabel("Email").fill(email)
-  await page.getByLabel("Password").fill(password)
-  await page.getByRole("button", { name: "Sign in" }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
-}
+import { login } from "./helpers"
 
 test("theme toggle switches dark and persists across reload", async ({
   page,
@@ -66,5 +60,6 @@ test("updating the password invalidates the old password", async ({ page }) => {
   await page.getByLabel("Current password").fill("newpass123")
   await page.getByLabel("New password").fill("finalpass123")
   await page.getByRole("button", { name: "Update password" }).click()
-  await expect(page.getByText("Password updated")).toBeVisible()
+  // The earlier success toast may still be on screen; target the newest one.
+  await expect(page.getByText("Password updated").last()).toBeVisible()
 })

@@ -1,12 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-async function login(page: Page, email: string, password: string) {
-  await page.goto("/login")
-  await page.getByLabel("Email").fill(email)
-  await page.getByLabel("Password").fill(password)
-  await page.getByRole("button", { name: "Sign in" }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
-}
+import { login } from "./helpers"
 
 async function openUsers(page: Page) {
   await page.getByRole("link", { name: "Users" }).click()
@@ -19,8 +13,8 @@ test("admin changes a user's role and deletes a user", async ({ page }) => {
   await openUsers(page)
 
   // Both seeded users render.
-  await expect(page.getByText("Ada Admin")).toBeVisible()
-  await expect(page.getByText("Mia Member")).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Ada Admin" })).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Mia Member" })).toBeVisible()
 
   // Promote Mia Member to admin; the role select reflects the change.
   await page.getByLabel("Role for Mia Member").selectOption("admin")
@@ -35,7 +29,7 @@ test("admin changes a user's role and deletes a user", async ({ page }) => {
   await dialog.getByRole("button", { name: "Delete" }).click()
 
   await expect(page.getByText("User deleted")).toBeVisible()
-  await expect(page.getByText("Mia Member")).toHaveCount(0)
+  await expect(page.getByRole("cell", { name: "Mia Member" })).toHaveCount(0)
 })
 
 test("member sees the users list read-only", async ({ page }) => {
@@ -43,8 +37,8 @@ test("member sees the users list read-only", async ({ page }) => {
   await openUsers(page)
 
   // The list renders for a member…
-  await expect(page.getByText("Ada Admin")).toBeVisible()
-  await expect(page.getByText("Mia Member")).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Ada Admin" })).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Mia Member" })).toBeVisible()
 
   // …but role changes and deletes are hidden.
   await expect(page.getByLabel("Role for Mia Member")).toHaveCount(0)

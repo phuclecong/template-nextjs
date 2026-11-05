@@ -17,7 +17,8 @@ test("register → login → logout", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard/)
 
   // Logout ends the session and redirects to login.
-  await page.getByRole("button", { name: "Sign out" }).click()
+  await page.locator('[data-sidebar="footer"]').getByRole("button").click()
+  await page.getByRole("menuitem", { name: "Sign out" }).click()
   await expect(page).toHaveURL(/\/login/)
 
   // Login with the new credentials.

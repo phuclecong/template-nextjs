@@ -10,12 +10,18 @@ export const en = {
   },
   shell: {
     title: "Dashboard",
-    signedInAs: "Signed in as",
     signOut: "Sign out",
+    toggleSidebar: "Toggle sidebar",
+    sidebar: "Sidebar",
+    sidebarDescription: "Displays the mobile sidebar.",
     nav: {
       tasks: "Tasks",
       users: "Users",
       settings: "Settings",
+    },
+    section: {
+      manage: "Manage",
+      preferences: "Preferences",
     },
   },
   login: {
