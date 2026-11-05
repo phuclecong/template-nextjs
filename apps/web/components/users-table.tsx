@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   useCustomMutation,
   useDelete,
@@ -27,16 +28,20 @@ type CurrentUser = Omit<UserApi, "createdAt">
 const ROLE_OPTIONS: Role[] = ["admin", "member"]
 
 export function UsersView() {
+  const { t } = useTranslation()
   const { data: identity, isLoading } = useGetIdentity<CurrentUser>()
 
   if (isLoading || !identity) {
-    return <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+    return (
+      <div className="p-6 text-sm text-muted-foreground">{t("common.loading")}</div>
+    )
   }
 
   return <UsersTable currentUser={identity} />
 }
 
 function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
+  const { t } = useTranslation()
   const usersQuery = useList<UserApi>({
     resource: "users",
     pagination: { pageSize: 100 },
@@ -58,9 +63,12 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
         url: `/api/users/${user.id}/role`,
         method: "patch",
         values: { role },
-        successNotification: { message: "Role updated", type: "success" },
+        successNotification: {
+          message: t("users.roleUpdated"),
+          type: "success",
+        },
         errorNotification: (error) => ({
-          message: "Failed to update role",
+          message: t("users.failedRoleUpdate"),
           type: "error",
           description: describeError(error),
         }),
@@ -79,9 +87,9 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
       {
         resource: "users",
         id: deleteTarget.id,
-        successNotification: { message: "User deleted", type: "success" },
+        successNotification: { message: t("users.deleted"), type: "success" },
         errorNotification: (error) => ({
-          message: "Failed to delete user",
+          message: t("users.failedDelete"),
           type: "error",
           description: describeError(error),
         }),
@@ -92,20 +100,22 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
 
   return (
     <div className="flex flex-col gap-4 p-6 text-sm">
-      <h1 className="text-lg font-medium">Users</h1>
+      <h1 className="text-lg font-medium">{t("users.title")}</h1>
 
       {usersQuery.query.isLoading ? (
-        <p className="text-muted-foreground">Loading users…</p>
+        <p className="text-muted-foreground">{t("users.loading")}</p>
       ) : (
         <div className="overflow-auto border border-border">
           <table className="w-full text-left">
             <thead className="bg-background">
               <tr className="border-b border-border">
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">Email</th>
-                <th className="px-3 py-2 font-medium">Role</th>
+                <th className="px-3 py-2 font-medium">{t("users.columns.name")}</th>
+                <th className="px-3 py-2 font-medium">{t("users.columns.email")}</th>
+                <th className="px-3 py-2 font-medium">{t("users.columns.role")}</th>
                 {isAdmin ? (
-                  <th className="px-3 py-2 font-medium">Actions</th>
+                  <th className="px-3 py-2 font-medium">
+                    {t("users.columns.actions")}
+                  </th>
                 ) : null}
               </tr>
             </thead>
@@ -117,7 +127,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
                   <td className="px-3 py-2">
                     {isAdmin ? (
                       <select
-                        aria-label={`Role for ${user.name}`}
+                        aria-label={t("users.roleLabel", { name: user.name })}
                         value={user.role}
                         onChange={(event) =>
                           changeRole(user, event.target.value as Role)
@@ -126,12 +136,12 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
                       >
                         {ROLE_OPTIONS.map((role) => (
                           <option key={role} value={role}>
-                            {role}
+                            {t(`users.role.${role}`)}
                           </option>
                         ))}
                       </select>
                     ) : (
-                      user.role
+                      t(`users.role.${user.role}`)
                     )}
                   </td>
                   {isAdmin ? (
@@ -142,7 +152,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
                         size="xs"
                         onClick={() => setDeleteTarget(user)}
                       >
-                        Delete
+                        {t("users.delete")}
                       </Button>
                     </td>
                   ) : null}
@@ -155,15 +165,11 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
 
       <Modal
         open={deleteTarget !== null}
-        title="Delete user?"
+        title={t("users.deleteTitle")}
         onClose={() => setDeleteTarget(null)}
       >
         <p className="text-sm text-muted-foreground">
-          Delete{" "}
-          <span className="font-medium text-foreground">
-            {deleteTarget?.name}
-          </span>
-          ? This cannot be undone.
+          {t("users.deleteBody", { name: deleteTarget?.name ?? "" })}
         </p>
         <div className="mt-4 flex justify-end gap-2">
           <Button
@@ -171,7 +177,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
             variant="outline"
             onClick={() => setDeleteTarget(null)}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -179,7 +185,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
             disabled={deleteMutation.mutation.isPending}
             onClick={confirmDelete}
           >
-            Delete
+            {t("common.delete")}
           </Button>
         </div>
       </Modal>

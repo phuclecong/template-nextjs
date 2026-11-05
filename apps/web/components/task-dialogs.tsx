@@ -1,6 +1,7 @@
 "use client"
 
 import { useId, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useCreate, useDelete, useUpdate, type HttpError } from "@refinedev/core"
 import type { TaskPriority, TaskStatus } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
@@ -87,6 +88,7 @@ export function TaskFormDialog({
   users: UserOption[]
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const isEdit = task !== null
   const [values, setValues] = useState<TaskFormValues>(() => toFormValues(task))
   const id = useId()
@@ -115,11 +117,11 @@ export function TaskFormDialog({
     if (payload.title === "") return
 
     const successNotification = {
-      message: isEdit ? "Task updated" : "Task created",
+      message: isEdit ? t("taskDialog.updated") : t("taskDialog.created"),
       type: "success" as const,
     }
     const errorNotification = (error?: HttpError) => ({
-      message: isEdit ? "Failed to update task" : "Failed to create task",
+      message: isEdit ? t("taskDialog.failedUpdate") : t("taskDialog.failedCreate"),
       type: "error" as const,
       description: describeError(error),
     })
@@ -153,12 +155,12 @@ export function TaskFormDialog({
   return (
     <Modal
       open={open}
-      title={isEdit ? "Edit task" : "New task"}
+      title={isEdit ? t("taskDialog.editTitle") : t("taskDialog.newTitle")}
       onClose={onClose}
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <label htmlFor={`${id}-title`}>Title</label>
+          <label htmlFor={`${id}-title`}>{t("taskDialog.title")}</label>
           <input
             id={`${id}-title`}
             value={values.title}
@@ -169,7 +171,9 @@ export function TaskFormDialog({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor={`${id}-description`}>Description</label>
+          <label htmlFor={`${id}-description`}>
+            {t("taskDialog.description")}
+          </label>
           <textarea
             id={`${id}-description`}
             value={values.description}
@@ -181,7 +185,7 @@ export function TaskFormDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-status`}>Status</label>
+            <label htmlFor={`${id}-status`}>{t("taskDialog.status")}</label>
             <select
               id={`${id}-status`}
               value={values.status}
@@ -192,14 +196,14 @@ export function TaskFormDialog({
             >
               {STATUS_OPTIONS.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {t(`tasks.status.${status}`)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-priority`}>Priority</label>
+            <label htmlFor={`${id}-priority`}>{t("taskDialog.priority")}</label>
             <select
               id={`${id}-priority`}
               value={values.priority}
@@ -208,10 +212,10 @@ export function TaskFormDialog({
               }
               className={fieldClass}
             >
-              <option value="">None</option>
+              <option value="">{t("taskDialog.none")}</option>
               {PRIORITY_OPTIONS.map((priority) => (
                 <option key={priority} value={priority}>
-                  {priority}
+                  {t(`tasks.priority.${priority}`)}
                 </option>
               ))}
             </select>
@@ -220,14 +224,14 @@ export function TaskFormDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-assignee`}>Assignee</label>
+            <label htmlFor={`${id}-assignee`}>{t("taskDialog.assignee")}</label>
             <select
               id={`${id}-assignee`}
               value={values.assigneeId}
               onChange={(event) => setField("assigneeId", event.target.value)}
               className={fieldClass}
             >
-              <option value="">Unassigned</option>
+              <option value="">{t("taskDialog.unassigned")}</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
@@ -237,7 +241,7 @@ export function TaskFormDialog({
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-due-date`}>Due date</label>
+            <label htmlFor={`${id}-due-date`}>{t("taskDialog.dueDate")}</label>
             <input
               id={`${id}-due-date`}
               type="date"
@@ -250,10 +254,10 @@ export function TaskFormDialog({
 
         <div className="mt-2 flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isPending}>
-            {isEdit ? "Save changes" : "Create task"}
+            {isEdit ? t("taskDialog.save") : t("taskDialog.create")}
           </Button>
         </div>
       </form>
@@ -270,6 +274,7 @@ export function DeleteTaskDialog({
   task: TaskWriteData | null
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const deleteMutation = useDelete<TaskWriteData>({})
 
   function onConfirm() {
@@ -280,11 +285,11 @@ export function DeleteTaskDialog({
         id: task.id,
         invalidates: ["resourceAll"],
         successNotification: {
-          message: "Task deleted",
+          message: t("taskDialog.deleted"),
           type: "success",
         },
         errorNotification: (error?: HttpError) => ({
-          message: "Failed to delete task",
+          message: t("taskDialog.failedDelete"),
           type: "error",
           description: describeError(error),
         }),
@@ -294,14 +299,13 @@ export function DeleteTaskDialog({
   }
 
   return (
-    <Modal open={open} title="Delete task?" onClose={onClose}>
+    <Modal open={open} title={t("taskDialog.deleteTitle")} onClose={onClose}>
       <p className="text-sm text-muted-foreground">
-        Delete <span className="font-medium text-foreground">{task?.title}</span>
-        ? This cannot be undone.
+        {t("taskDialog.deleteBody", { title: task?.title ?? "" })}
       </p>
       <div className="mt-4 flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button
           type="button"
@@ -309,7 +313,7 @@ export function DeleteTaskDialog({
           disabled={deleteMutation.mutation.isPending}
           onClick={onConfirm}
         >
-          Delete
+          {t("common.delete")}
         </Button>
       </div>
     </Modal>

@@ -1,21 +1,19 @@
 import type { I18nProvider } from "@refinedev/core"
+import i18n from "@/lib/i18n"
 
 /**
- * Refine i18nProvider (ADR-0002, ADR-0004). English is the default locale.
- * ADR-0004's i18next engine and cookie/localStorage persistence land with the
- * locale feature; until then this minimal English table satisfies the
- * provider contract without a dependency.
+ * Refine i18nProvider backed by the shared i18next instance (ADR-0002,
+ * ADR-0004). Components read translations via react-i18next's `useTranslation`
+ * so the tree re-renders on `changeLanguage`; this provider exists so Refine's
+ * own `useTranslate`/`useSetLocale` surface stays consistent with the same
+ * engine.
  */
-const english: Record<string, string> = {}
-
-let locale = "en"
-
 export const i18nProvider: I18nProvider = {
-  translate: (key, _options, defaultMessage) =>
-    english[key] ?? defaultMessage ?? key,
-  changeLocale: (next) => {
-    locale = next
-    return Promise.resolve()
+  translate: (key, options, defaultMessage) => {
+    const translated = i18n.t(key, options)
+    if (typeof translated === "string" && translated) return translated
+    return defaultMessage ?? key
   },
-  getLocale: () => locale,
+  changeLocale: (locale) => i18n.changeLanguage(locale),
+  getLocale: () => i18n.language,
 }

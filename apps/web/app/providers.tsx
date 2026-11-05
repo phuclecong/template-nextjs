@@ -4,7 +4,7 @@ import { Refine } from "@refinedev/core"
 import routerProvider from "@refinedev/nextjs-router/app"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import dynamic from "next/dynamic"
-import { Suspense, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { Toaster } from "sonner"
 
 import { authProvider } from "@/providers/auth-provider"
@@ -13,6 +13,7 @@ import { auditLogProvider } from "@/providers/audit-log-provider"
 import { dataProvider } from "@/providers/data-provider"
 import { i18nProvider } from "@/providers/i18n-provider"
 import { notificationProvider } from "@/providers/notification-provider"
+import { applyPersistedLocale } from "@/lib/i18n"
 
 // Client-only gate that boots the MSW worker before children render, so the
 // first data fetch is already intercepted (and `msw/browser` stays out of the
@@ -34,6 +35,10 @@ export function Providers({
   children: React.ReactNode
 }) {
   const [queryClient] = useState(() => new QueryClient())
+
+  useEffect(() => {
+    applyPersistedLocale()
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useRef, useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
   flexRender,
   getCoreRowModel,
@@ -57,19 +58,23 @@ type TaskRow = {
 }
 
 export function TasksView() {
+  const { t } = useTranslation()
   const { data: identity, isLoading } = useGetIdentity<CurrentUser>()
 
   // Wait for identity before mounting the data hooks: getIdentity() also
   // loads the in-memory access token, which the dataProvider needs to attach
   // to /api/tasks requests.
   if (isLoading || !identity) {
-    return <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+    return (
+      <div className="p-6 text-sm text-muted-foreground">{t("common.loading")}</div>
+    )
   }
 
   return <TasksTable currentUser={identity} />
 }
 
 function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
+  const { t } = useTranslation()
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
@@ -143,13 +148,13 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
         priority: task.priority,
         assigneeId: task.assigneeId,
         assigneeName: task.assigneeId
-          ? (assigneeMap.get(task.assigneeId) ?? "Unknown")
-          : "Unassigned",
+          ? (assigneeMap.get(task.assigneeId) ?? t("tasks.unknown"))
+          : t("tasks.unassigned"),
         dueDate: task.dueDate,
         canModify:
           currentUser.role === "admin" || task.assigneeId === currentUser.id,
       })),
-    [allTasks, assigneeMap, currentUser]
+    [allTasks, assigneeMap, currentUser, t]
   )
 
   const suggestions = useMemo(() => {
@@ -176,19 +181,32 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
 
   const columns = useMemo<ColumnDef<TaskRow>[]>(
     () => [
-      { accessorKey: "title", header: "Title", size: 360 },
-      { accessorKey: "status", header: "Status", size: 120 },
-      { accessorKey: "priority", header: "Priority", size: 120 },
+      { accessorKey: "title", header: t("tasks.columns.title"), size: 360 },
+      {
+        accessorKey: "status",
+        header: t("tasks.columns.status"),
+        size: 120,
+        cell: ({ row }) => t(`tasks.status.${row.original.status}`),
+      },
+      {
+        accessorKey: "priority",
+        header: t("tasks.columns.priority"),
+        size: 120,
+        cell: ({ row }) =>
+          row.original.priority
+            ? t(`tasks.priority.${row.original.priority}`)
+            : "",
+      },
       {
         accessorKey: "assigneeName",
-        header: "Assignee",
+        header: t("tasks.columns.assignee"),
         size: 180,
         enableSorting: false,
       },
-      { accessorKey: "dueDate", header: "Due date", size: 140 },
+      { accessorKey: "dueDate", header: t("tasks.columns.dueDate"), size: 140 },
       {
         id: "actions",
-        header: "Actions",
+        header: t("tasks.columns.actions"),
         size: 140,
         enableSorting: false,
         cell: ({ row }) => (
@@ -200,7 +218,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
               disabled={!row.original.canModify}
               onClick={() => openEdit(row.original)}
             >
-              Edit
+              {t("tasks.edit")}
             </Button>
             <Button
               type="button"
@@ -209,13 +227,13 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
               disabled={!row.original.canModify}
               onClick={() => openDelete(row.original)}
             >
-              Delete
+              {t("common.delete")}
             </Button>
           </div>
         ),
       },
     ],
-    [openEdit, openDelete]
+    [openEdit, openDelete, t]
   )
 
   const table = useReactTable({
@@ -272,20 +290,20 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
   return (
     <div className="flex flex-col gap-4 p-6 text-sm">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-medium">Tasks</h1>
+        <h1 className="text-lg font-medium">{t("tasks.title")}</h1>
         <div className="flex items-center gap-2">
           <div className="relative w-72">
             <input
-              aria-label="Search tasks"
+              aria-label={t("tasks.searchLabel")}
               value={query}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search tasks…"
+              placeholder={t("tasks.searchPlaceholder")}
               className="w-full rounded-none border border-input bg-background px-2.5 py-1.5"
             />
             {suggestionsOpen && debouncedQuery && suggestions.length > 0 ? (
               <ul
                 role="listbox"
-                aria-label="Title suggestions"
+                aria-label={t("tasks.suggestionsLabel")}
                 className="absolute inset-x-0 top-full z-10 mt-1 border border-border bg-background shadow-sm"
               >
                 {suggestions.map((title) => (
@@ -303,15 +321,15 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
             ) : null}
           </div>
           <Button type="button" onClick={openCreate}>
-            New task
+            {t("tasks.new")}
           </Button>
         </div>
       </div>
 
       {isLoading ? (
-        <p className="text-muted-foreground">Loading tasks…</p>
+        <p className="text-muted-foreground">{t("tasks.loading")}</p>
       ) : rows.length === 0 ? (
-        <p className="text-muted-foreground">No tasks match your search.</p>
+        <p className="text-muted-foreground">{t("tasks.empty")}</p>
       ) : (
         <div
           ref={containerRef}
@@ -397,7 +415,9 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
             </tbody>
           </table>
           {isFetchingNextPage ? (
-            <p className="px-3 py-2 text-muted-foreground">Loading more…</p>
+            <p className="px-3 py-2 text-muted-foreground">
+              {t("tasks.loadingMore")}
+            </p>
           ) : null}
         </div>
       )}

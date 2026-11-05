@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { useLogin } from "@refinedev/core"
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Button } from "@workspace/ui/components/button"
 
 export function LoginForm() {
+  const { t } = useTranslation()
   const { mutate: login, isPending } = useLogin<{
     email: string
     password: string
@@ -26,16 +28,14 @@ export function LoginForm() {
         onSuccess: (result) => {
           if (!result.success) {
             setError(
-              result.error instanceof Error
-                ? result.error.message
-                : "Sign in failed."
+              result.error instanceof Error ? result.error.message : t("login.failed")
             )
             return
           }
           window.location.assign(result.redirectTo ?? "/dashboard")
         },
         onError: (err) => {
-          setError(err instanceof Error ? err.message : "Sign in failed.")
+          setError(err instanceof Error ? err.message : t("login.failed"))
         },
       }
     )
@@ -47,9 +47,9 @@ export function LoginForm() {
         onSubmit={onSubmit}
         className="flex w-full max-w-sm flex-col gap-4 text-sm"
       >
-        <h1 className="text-lg font-medium">Sign in</h1>
+        <h1 className="text-lg font-medium">{t("login.title")}</h1>
         <div className="flex flex-col gap-1">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t("login.email")}</label>
           <input
             id="email"
             name="email"
@@ -60,7 +60,7 @@ export function LoginForm() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t("login.password")}</label>
           <input
             id="password"
             name="password"
@@ -76,12 +76,12 @@ export function LoginForm() {
           </p>
         ) : null}
         <Button type="submit" disabled={isPending}>
-          Sign in
+          {t("login.submit")}
         </Button>
         <p className="text-muted-foreground">
-          No account?{" "}
+          {t("login.noAccount")}{" "}
           <Link href="/register" className="text-primary underline">
-            Register
+            {t("login.register")}
           </Link>
         </p>
       </form>

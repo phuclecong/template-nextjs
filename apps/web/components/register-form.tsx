@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { useRegister } from "@refinedev/core"
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Button } from "@workspace/ui/components/button"
 
 export function RegisterForm() {
+  const { t } = useTranslation()
   const { mutate: register, isPending } = useRegister<{
     name: string
     email: string
@@ -30,14 +32,14 @@ export function RegisterForm() {
             setError(
               result.error instanceof Error
                 ? result.error.message
-                : "Registration failed."
+                : t("register.failed")
             )
             return
           }
           window.location.assign(result.redirectTo ?? "/dashboard")
         },
         onError: (err) => {
-          setError(err instanceof Error ? err.message : "Registration failed.")
+          setError(err instanceof Error ? err.message : t("register.failed"))
         },
       }
     )
@@ -49,9 +51,9 @@ export function RegisterForm() {
         onSubmit={onSubmit}
         className="flex w-full max-w-sm flex-col gap-4 text-sm"
       >
-        <h1 className="text-lg font-medium">Register</h1>
+        <h1 className="text-lg font-medium">{t("register.title")}</h1>
         <div className="flex flex-col gap-1">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">{t("register.name")}</label>
           <input
             id="name"
             name="name"
@@ -61,7 +63,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t("register.email")}</label>
           <input
             id="email"
             name="email"
@@ -72,7 +74,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t("register.password")}</label>
           <input
             id="password"
             name="password"
@@ -88,12 +90,12 @@ export function RegisterForm() {
           </p>
         ) : null}
         <Button type="submit" disabled={isPending}>
-          Register
+          {t("register.submit")}
         </Button>
         <p className="text-muted-foreground">
-          Already have an account?{" "}
+          {t("register.haveAccount")}{" "}
           <Link href="/login" className="text-primary underline">
-            Sign in
+            {t("register.signIn")}
           </Link>
         </p>
       </form>
