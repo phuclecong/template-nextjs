@@ -5,6 +5,8 @@ import { useTheme } from "next-themes"
 import { useTranslation } from "react-i18next"
 import { useCustomMutation, type HttpError } from "@refinedev/core"
 import { Button } from "@workspace/ui/components/button"
+import { Field } from "@workspace/ui/components/form"
+import { Input } from "@workspace/ui/components/input"
 import { describeError } from "@/lib/http-error"
 import { formatCurrency } from "@/lib/currency"
 
@@ -113,32 +115,29 @@ function ChangePasswordForm() {
     <section className="flex flex-col gap-2">
       <h2 className="font-medium">{t("settings.password.title")}</h2>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="current-password">
-            {t("settings.password.current")}
-          </label>
-          <input
+        <Field
+          label={t("settings.password.current")}
+          htmlFor="current-password"
+        >
+          <Input
             id="current-password"
             type="password"
             autoComplete="current-password"
             required
             value={currentPassword}
             onChange={(event) => setCurrentPassword(event.target.value)}
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="new-password">{t("settings.password.new")}</label>
-          <input
+        </Field>
+        <Field label={t("settings.password.new")} htmlFor="new-password">
+          <Input
             id="new-password"
             type="password"
             autoComplete="new-password"
             required
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
           />
-        </div>
+        </Field>
         <div>
           <Button type="submit" disabled={passwordMutation.mutation.isPending}>
             {t("settings.password.submit")}

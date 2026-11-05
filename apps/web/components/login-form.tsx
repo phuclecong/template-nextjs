@@ -6,6 +6,8 @@ import { useLogin } from "@refinedev/core"
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { Field } from "@workspace/ui/components/form"
+import { Input } from "@workspace/ui/components/input"
 
 export function LoginForm() {
   const { t } = useTranslation()
@@ -28,7 +30,9 @@ export function LoginForm() {
         onSuccess: (result) => {
           if (!result.success) {
             setError(
-              result.error instanceof Error ? result.error.message : t("login.failed")
+              result.error instanceof Error
+                ? result.error.message
+                : t("login.failed")
             )
             return
           }
@@ -48,28 +52,24 @@ export function LoginForm() {
         className="flex w-full max-w-sm flex-col gap-4 text-sm"
       >
         <h1 className="text-lg font-medium">{t("login.title")}</h1>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email">{t("login.email")}</label>
-          <input
+        <Field label={t("login.email")} htmlFor="email">
+          <Input
             id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password">{t("login.password")}</label>
-          <input
+        </Field>
+        <Field label={t("login.password")} htmlFor="password">
+          <Input
             id="password"
             name="password"
             type="password"
             required
             autoComplete="current-password"
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
           />
-        </div>
+        </Field>
         {error ? (
           <p role="alert" className="text-destructive">
             {error}

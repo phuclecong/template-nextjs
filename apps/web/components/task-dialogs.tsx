@@ -2,10 +2,18 @@
 
 import { useId, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useCreate, useDelete, useUpdate, type HttpError } from "@refinedev/core"
+import {
+  useCreate,
+  useDelete,
+  useUpdate,
+  type HttpError,
+} from "@refinedev/core"
 import type { TaskPriority, TaskStatus } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
-import { Modal } from "@/components/modal"
+import { Dialog } from "@workspace/ui/components/dialog"
+import { Field } from "@workspace/ui/components/form"
+import { Input, Textarea } from "@workspace/ui/components/input"
+import { Select } from "@workspace/ui/components/select"
 import { describeError } from "@/lib/http-error"
 
 /** The shape of a task the write path needs; rows from the table satisfy it. */
@@ -41,9 +49,6 @@ type TaskFormValues = {
 
 const STATUS_OPTIONS: TaskStatus[] = ["todo", "in-progress", "done", "blocked"]
 const PRIORITY_OPTIONS: TaskPriority[] = ["low", "medium", "high"]
-
-const fieldClass =
-  "w-full rounded-none border border-input bg-background px-2.5 py-1.5 text-sm"
 
 function toFormValues(task: TaskWriteData | null): TaskFormValues {
   if (!task) {
@@ -121,7 +126,9 @@ export function TaskFormDialog({
       type: "success" as const,
     }
     const errorNotification = (error?: HttpError) => ({
-      message: isEdit ? t("taskDialog.failedUpdate") : t("taskDialog.failedCreate"),
+      message: isEdit
+        ? t("taskDialog.failedUpdate")
+        : t("taskDialog.failedCreate"),
       type: "error" as const,
       description: describeError(error),
     })
@@ -153,64 +160,57 @@ export function TaskFormDialog({
   }
 
   return (
-    <Modal
+    <Dialog
       open={open}
       title={isEdit ? t("taskDialog.editTitle") : t("taskDialog.newTitle")}
       onClose={onClose}
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <label htmlFor={`${id}-title`}>{t("taskDialog.title")}</label>
-          <input
+        <Field label={t("taskDialog.title")} htmlFor={`${id}-title`}>
+          <Input
             id={`${id}-title`}
             value={values.title}
             onChange={(event) => setField("title", event.target.value)}
             required
-            className={fieldClass}
           />
-        </div>
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor={`${id}-description`}>
-            {t("taskDialog.description")}
-          </label>
-          <textarea
+        <Field
+          label={t("taskDialog.description")}
+          htmlFor={`${id}-description`}
+        >
+          <Textarea
             id={`${id}-description`}
             value={values.description}
             onChange={(event) => setField("description", event.target.value)}
             rows={3}
-            className={fieldClass}
           />
-        </div>
+        </Field>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-status`}>{t("taskDialog.status")}</label>
-            <select
+          <Field label={t("taskDialog.status")} htmlFor={`${id}-status`}>
+            <Select
               id={`${id}-status`}
               value={values.status}
               onChange={(event) =>
                 setField("status", event.target.value as TaskStatus)
               }
-              className={fieldClass}
             >
               {STATUS_OPTIONS.map((status) => (
                 <option key={status} value={status}>
                   {t(`tasks.status.${status}`)}
                 </option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-priority`}>{t("taskDialog.priority")}</label>
-            <select
+          <Field label={t("taskDialog.priority")} htmlFor={`${id}-priority`}>
+            <Select
               id={`${id}-priority`}
               value={values.priority}
               onChange={(event) =>
                 setField("priority", event.target.value as TaskPriority | "")
               }
-              className={fieldClass}
             >
               <option value="">{t("taskDialog.none")}</option>
               {PRIORITY_OPTIONS.map((priority) => (
@@ -218,18 +218,16 @@ export function TaskFormDialog({
                   {t(`tasks.priority.${priority}`)}
                 </option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </Field>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-assignee`}>{t("taskDialog.assignee")}</label>
-            <select
+          <Field label={t("taskDialog.assignee")} htmlFor={`${id}-assignee`}>
+            <Select
               id={`${id}-assignee`}
               value={values.assigneeId}
               onChange={(event) => setField("assigneeId", event.target.value)}
-              className={fieldClass}
             >
               <option value="">{t("taskDialog.unassigned")}</option>
               {users.map((user) => (
@@ -237,19 +235,17 @@ export function TaskFormDialog({
                   {user.name}
                 </option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor={`${id}-due-date`}>{t("taskDialog.dueDate")}</label>
-            <input
+          <Field label={t("taskDialog.dueDate")} htmlFor={`${id}-due-date`}>
+            <Input
               id={`${id}-due-date`}
               type="date"
               value={values.dueDate}
               onChange={(event) => setField("dueDate", event.target.value)}
-              className={fieldClass}
             />
-          </div>
+          </Field>
         </div>
 
         <div className="mt-2 flex justify-end gap-2">
@@ -261,7 +257,7 @@ export function TaskFormDialog({
           </Button>
         </div>
       </form>
-    </Modal>
+    </Dialog>
   )
 }
 
@@ -299,7 +295,7 @@ export function DeleteTaskDialog({
   }
 
   return (
-    <Modal open={open} title={t("taskDialog.deleteTitle")} onClose={onClose}>
+    <Dialog open={open} title={t("taskDialog.deleteTitle")} onClose={onClose}>
       <p className="text-sm text-muted-foreground">
         {t("taskDialog.deleteBody", { title: task?.title ?? "" })}
       </p>
@@ -316,6 +312,6 @@ export function DeleteTaskDialog({
           {t("common.delete")}
         </Button>
       </div>
-    </Modal>
+    </Dialog>
   )
 }

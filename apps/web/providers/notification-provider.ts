@@ -1,5 +1,5 @@
 import type { NotificationProvider } from "@refinedev/core"
-import { toast } from "sonner"
+import { toast } from "@workspace/ui/components/sonner"
 
 /**
  * Refine notificationProvider (ADR-0002). Wires Refine's notification bus to

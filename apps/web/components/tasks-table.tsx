@@ -14,11 +14,17 @@ import { useGetIdentity, useInfiniteList, useList } from "@refinedev/core"
 import type { CrudFilter, CrudSort } from "@refinedev/core"
 import type { TaskPriority, TaskStatus } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
-import { debounce } from "@/lib/debounce"
+import { Input } from "@workspace/ui/components/input"
 import {
-  DeleteTaskDialog,
-  TaskFormDialog,
-} from "@/components/task-dialogs"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import { debounce } from "@/lib/debounce"
+import { DeleteTaskDialog, TaskFormDialog } from "@/components/task-dialogs"
 
 const PAGE_SIZE = 30
 const SEARCH_DEBOUNCE_MS = 300
@@ -66,7 +72,9 @@ export function TasksView() {
   // to /api/tasks requests.
   if (isLoading || !identity) {
     return (
-      <div className="p-6 text-sm text-muted-foreground">{t("common.loading")}</div>
+      <div className="p-6 text-sm text-muted-foreground">
+        {t("common.loading")}
+      </div>
     )
   }
 
@@ -293,12 +301,11 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
         <h1 className="text-lg font-medium">{t("tasks.title")}</h1>
         <div className="flex items-center gap-2">
           <div className="relative w-72">
-            <input
+            <Input
               aria-label={t("tasks.searchLabel")}
               value={query}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder={t("tasks.searchPlaceholder")}
-              className="w-full rounded-none border border-input bg-background px-2.5 py-1.5"
             />
             {suggestionsOpen && debouncedQuery && suggestions.length > 0 ? (
               <ul
@@ -335,18 +342,17 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
           ref={containerRef}
           className="h-[60vh] overflow-auto border border-border"
         >
-          <table className="w-full text-left" style={{ display: "grid" }}>
-            <thead
-              className="bg-background"
+          <Table style={{ display: "grid" }}>
+            <TableHeader
               style={{ display: "grid", position: "sticky", top: 0, zIndex: 1 }}
             >
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr
+                <TableRow
                   key={headerGroup.id}
                   style={{ display: "flex", width: "100%" }}
                 >
                   {headerGroup.headers.map((header) => (
-                    <th
+                    <TableHead
                       key={header.id}
                       onClick={
                         header.column.getCanSort()
@@ -354,7 +360,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
                           : undefined
                       }
                       style={{ display: "flex", width: header.getSize() }}
-                      className={`items-center gap-1 border-b border-border px-3 py-2 font-medium ${
+                      className={`items-center gap-1 ${
                         header.column.getCanSort() ? "cursor-pointer" : ""
                       }`}
                     >
@@ -367,12 +373,12 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
                           ? "↑"
                           : "↓"
                         : null}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </thead>
-            <tbody
+            </TableHeader>
+            <TableBody
               style={{
                 display: "grid",
                 position: "relative",
@@ -383,7 +389,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
                 const row = table.getRowModel().rows[virtualRow.index]
                 if (!row) return null
                 return (
-                  <tr
+                  <TableRow
                     key={row.id}
                     style={{
                       display: "flex",
@@ -395,25 +401,25 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
                     }}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td
+                      <TableCell
                         key={cell.id}
                         style={{
                           display: "flex",
                           width: cell.column.getSize(),
                         }}
-                        className="items-center border-b border-border px-3 py-2"
+                        className="items-center"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
                         )}
-                      </td>
+                      </TableCell>
                     ))}
-                  </tr>
+                  </TableRow>
                 )
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           {isFetchingNextPage ? (
             <p className="px-3 py-2 text-muted-foreground">
               {t("tasks.loadingMore")}

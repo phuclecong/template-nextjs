@@ -6,6 +6,8 @@ import { useRegister } from "@refinedev/core"
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Button } from "@workspace/ui/components/button"
+import { Field } from "@workspace/ui/components/form"
+import { Input } from "@workspace/ui/components/input"
 
 export function RegisterForm() {
   const { t } = useTranslation()
@@ -52,38 +54,27 @@ export function RegisterForm() {
         className="flex w-full max-w-sm flex-col gap-4 text-sm"
       >
         <h1 className="text-lg font-medium">{t("register.title")}</h1>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="name">{t("register.name")}</label>
-          <input
-            id="name"
-            name="name"
-            required
-            autoComplete="name"
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email">{t("register.email")}</label>
-          <input
+        <Field label={t("register.name")} htmlFor="name">
+          <Input id="name" name="name" required autoComplete="name" />
+        </Field>
+        <Field label={t("register.email")} htmlFor="email">
+          <Input
             id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password">{t("register.password")}</label>
-          <input
+        </Field>
+        <Field label={t("register.password")} htmlFor="password">
+          <Input
             id="password"
             name="password"
             type="password"
             required
             autoComplete="new-password"
-            className="rounded-none border border-input bg-background px-2.5 py-1.5"
           />
-        </div>
+        </Field>
         {error ? (
           <p role="alert" className="text-destructive">
             {error}

@@ -12,7 +12,16 @@ import {
 } from "@refinedev/core"
 import type { Role } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
-import { Modal } from "@/components/modal"
+import { Dialog } from "@workspace/ui/components/dialog"
+import { Select } from "@workspace/ui/components/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { describeError } from "@/lib/http-error"
 
 type UserApi = {
@@ -33,7 +42,9 @@ export function UsersView() {
 
   if (isLoading || !identity) {
     return (
-      <div className="p-6 text-sm text-muted-foreground">{t("common.loading")}</div>
+      <div className="p-6 text-sm text-muted-foreground">
+        {t("common.loading")}
+      </div>
     )
   }
 
@@ -106,46 +117,43 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
         <p className="text-muted-foreground">{t("users.loading")}</p>
       ) : (
         <div className="overflow-auto border border-border">
-          <table className="w-full text-left">
-            <thead className="bg-background">
-              <tr className="border-b border-border">
-                <th className="px-3 py-2 font-medium">{t("users.columns.name")}</th>
-                <th className="px-3 py-2 font-medium">{t("users.columns.email")}</th>
-                <th className="px-3 py-2 font-medium">{t("users.columns.role")}</th>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("users.columns.name")}</TableHead>
+                <TableHead>{t("users.columns.email")}</TableHead>
+                <TableHead>{t("users.columns.role")}</TableHead>
                 {isAdmin ? (
-                  <th className="px-3 py-2 font-medium">
-                    {t("users.columns.actions")}
-                  </th>
+                  <TableHead>{t("users.columns.actions")}</TableHead>
                 ) : null}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {users.map((user) => (
-                <tr key={user.id} className="border-b border-border">
-                  <td className="px-3 py-2">{user.name}</td>
-                  <td className="px-3 py-2">{user.email}</td>
-                  <td className="px-3 py-2">
+                <TableRow key={user.id}>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
                     {isAdmin ? (
-                      <select
+                      <Select
                         aria-label={t("users.roleLabel", { name: user.name })}
                         value={user.role}
                         onChange={(event) =>
                           changeRole(user, event.target.value as Role)
                         }
-                        className="rounded-none border border-input bg-background px-2 py-1"
                       >
                         {ROLE_OPTIONS.map((role) => (
                           <option key={role} value={role}>
                             {t(`users.role.${role}`)}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : (
                       t(`users.role.${user.role}`)
                     )}
-                  </td>
+                  </TableCell>
                   {isAdmin ? (
-                    <td className="px-3 py-2">
+                    <TableCell>
                       <Button
                         type="button"
                         variant="ghost"
@@ -154,16 +162,16 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
                       >
                         {t("users.delete")}
                       </Button>
-                    </td>
+                    </TableCell>
                   ) : null}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 
-      <Modal
+      <Dialog
         open={deleteTarget !== null}
         title={t("users.deleteTitle")}
         onClose={() => setDeleteTarget(null)}
@@ -188,7 +196,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
             {t("common.delete")}
           </Button>
         </div>
-      </Modal>
+      </Dialog>
     </div>
   )
 }
