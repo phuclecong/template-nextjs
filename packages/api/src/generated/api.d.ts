@@ -141,6 +141,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tasks/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update several tasks at once (members may only update their own tasks) */
+        patch: operations["bulkUpdateTasks"];
+        trace?: never;
+    };
     "/tasks/{id}": {
         parameters: {
             query?: never;
@@ -260,6 +277,22 @@ export interface components {
             assigneeId?: string | null;
             /** Format: date */
             dueDate?: string | null;
+        };
+        /** @description At least one of status, priority, or assigneeId must be present. */
+        TaskBulkUpdateRequest: {
+            ids: string[];
+            status?: components["schemas"]["Status"];
+            /** @enum {string|null} */
+            priority?: "low" | "medium" | "high" | null;
+            assigneeId?: string | null;
+        };
+        TaskBulkUpdateResponse: {
+            updated: number;
+            failed: components["schemas"]["BulkFailure"][];
+        };
+        BulkFailure: {
+            id: string;
+            reason: string;
         };
         PasswordUpdateRequest: {
             /** Format: password */
@@ -495,7 +528,22 @@ export interface operations {
     };
     listTasks: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Case-insensitive substring match on the title. */
+                q?: string;
+                status?: components["schemas"]["Status"];
+                priority?: "low" | "medium" | "high";
+                /** @description A user id, or the literal "unassigned" to match tasks with no assignee. */
+                assigneeId?: string;
+                /** @description Inclusive lower bound on the due date. */
+                dueDate_gte?: string;
+                /** @description Inclusive upper bound on the due date. */
+                dueDate_lte?: string;
+                _start?: number;
+                _end?: number;
+                _sort?: string;
+                _order?: "asc" | "desc";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -534,6 +582,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Task"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    bulkUpdateTasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskBulkUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Result of the bulk update; per-id failures are reported. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskBulkUpdateResponse"];
                 };
             };
             400: components["responses"]["BadRequest"];

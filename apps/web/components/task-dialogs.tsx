@@ -199,7 +199,9 @@ export function TaskFormDialog({
           name="title"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={`${id}-title`}>{t("taskDialog.title")}</FieldLabel>
+              <FieldLabel htmlFor={`${id}-title`}>
+                {t("taskDialog.title")}
+              </FieldLabel>
               <Input
                 {...field}
                 id={`${id}-title`}
@@ -314,7 +316,9 @@ export function TaskFormDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("taskDialog.unassigned")}</SelectItem>
+                    <SelectItem value="">
+                      {t("taskDialog.unassigned")}
+                    </SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}

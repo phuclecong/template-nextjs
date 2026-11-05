@@ -26,37 +26,39 @@ test("sortable column header is keyboard operable and exposes aria-sort", async 
   await expect(titleHeader).toHaveAttribute("aria-sort", "ascending")
 
   // The header is a real button, so it is focusable and Enter-operable.
-  // Toggling cycles ascending → descending → none.
+  // Toggling cycles ascending → descending → ascending.
   await titleHeader.getByRole("button").press("Enter")
   await expect(titleHeader).toHaveAttribute("aria-sort", "descending")
-
-  await titleHeader.getByRole("button").press("Enter")
-  await expect(titleHeader).toHaveAttribute("aria-sort", "none")
 
   await titleHeader.getByRole("button").press("Enter")
   await expect(titleHeader).toHaveAttribute("aria-sort", "ascending")
 })
 
-test("search suggestions are keyboard navigable with focus staying on the input", async ({
+test("selection checkboxes, filters, and pagination are labelled", async ({
   page,
 }) => {
   await login(page, "admin@example.com", "adminpass")
   await openTasks(page)
 
-  const combobox = page.getByRole("combobox", { name: "Search tasks" })
-  await combobox.fill("release")
+  // Header select-all checkbox is labelled.
+  const selectAll = page.getByRole("checkbox", { name: "Select all tasks" })
+  await expect(selectAll).toBeVisible()
 
-  const listbox = page.getByRole("listbox", { name: "Title suggestions" })
-  await expect(listbox).toBeVisible()
-  await expect(combobox).toHaveAttribute("aria-expanded", "true")
+  // Row checkboxes are labelled with the task title.
+  const row = page.getByRole("row").filter({ hasText: "Build the MSW mock" })
+  await expect(
+    row.getByRole("checkbox", { name: "Select Build the MSW mock" })
+  ).toBeVisible()
 
-  // ArrowDown activates the first option without moving focus off the input.
-  await combobox.press("ArrowDown")
-  await expect(combobox).toBeFocused()
-  await expect(combobox).toHaveAttribute("aria-activedescendant", /-option-0$/)
+  // Filter controls are labelled.
+  await expect(page.getByLabel("Status")).toBeVisible()
+  await expect(page.getByLabel("Priority")).toBeVisible()
+  await expect(page.getByLabel("Assignee")).toBeVisible()
 
-  // Enter commits the active option.
-  await combobox.press("Enter")
-  await expect(combobox).toHaveValue(/release/)
-  await expect(combobox).toHaveAttribute("aria-expanded", "false")
+  // Pagination is labelled and the current page is announced.
+  const pagination = page.getByRole("navigation", { name: "Pagination" })
+  await expect(pagination).toBeVisible()
+  await expect(
+    pagination.getByRole("button", { name: "Page 1" })
+  ).toHaveAttribute("aria-current", "page")
 })

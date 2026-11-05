@@ -20,6 +20,14 @@ _Avoid_: Permission group, level
 The User responsible for a Task.
 _Avoid_: Owner
 
+**Assign**:
+To set a Task's Assignee to a chosen User, or clear it so the Task is unassigned.
+_Avoid_: Claim, reassign
+
+**Due date**:
+The date by which a Task should be completed. Optional; a Task without one has no due date.
+_Avoid_: Deadline
+
 **Status**:
 The lifecycle state of a Task: `todo`, `in-progress`, `done`, or `blocked`.
 _Avoid_: State, phase
