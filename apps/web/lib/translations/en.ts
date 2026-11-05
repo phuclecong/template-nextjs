@@ -139,6 +139,11 @@ export const en = {
       failed: "Failed to update password",
     },
   },
+  error: {
+    title: "Something went wrong",
+    body: "An unexpected error occurred. Please try again.",
+    retry: "Try again",
+  },
 }
 
 export type Translation = typeof en

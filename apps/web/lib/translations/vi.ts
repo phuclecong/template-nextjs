@@ -138,4 +138,9 @@ export const vi: Translation = {
       failed: "Không thể cập nhật mật khẩu",
     },
   },
+  error: {
+    title: "Đã xảy ra lỗi",
+    body: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+    retry: "Thử lại",
+  },
 }

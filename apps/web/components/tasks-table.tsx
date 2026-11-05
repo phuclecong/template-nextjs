@@ -1,6 +1,15 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState, useEffect } from "react"
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react"
 import { useTranslation } from "react-i18next"
 import {
   flexRender,
@@ -63,6 +72,49 @@ type TaskRow = {
   canModify: boolean
 }
 
+/**
+ * Memoized actions cell. `task` (the row object) and `onEdit`/`onDelete`
+ * (stable `useCallback`s) are referentially stable across renders, so
+ * `React.memo` skips re-rendering this cell when the virtualizer re-renders
+ * the table for scrolling — no avoidable re-renders of the buttons.
+ */
+const TaskActionsCell = memo(function TaskActionsCell({
+  task,
+  editLabel,
+  deleteLabel,
+  onEdit,
+  onDelete,
+}: {
+  task: TaskRow
+  editLabel: string
+  deleteLabel: string
+  onEdit: (task: TaskRow) => void
+  onDelete: (task: TaskRow) => void
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        disabled={!task.canModify}
+        onClick={() => onEdit(task)}
+      >
+        {editLabel}
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        disabled={!task.canModify}
+        onClick={() => onDelete(task)}
+      >
+        {deleteLabel}
+      </Button>
+    </div>
+  )
+})
+
 export function TasksView() {
   const { t } = useTranslation()
   const { data: identity, isLoading } = useGetIdentity<CurrentUser>()
@@ -83,9 +135,11 @@ export function TasksView() {
 
 function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
   const { t } = useTranslation()
+  const listboxId = useId()
   const [query, setQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const [sorting, setSorting] = useState<SortingState>([
     { id: "title", desc: false },
   ])
@@ -218,26 +272,13 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
         size: 140,
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              disabled={!row.original.canModify}
-              onClick={() => openEdit(row.original)}
-            >
-              {t("tasks.edit")}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              disabled={!row.original.canModify}
-              onClick={() => openDelete(row.original)}
-            >
-              {t("common.delete")}
-            </Button>
-          </div>
+          <TaskActionsCell
+            task={row.original}
+            editLabel={t("tasks.edit")}
+            deleteLabel={t("common.delete")}
+            onEdit={openEdit}
+            onDelete={openDelete}
+          />
         ),
       },
     ],
@@ -284,6 +325,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
 
   function onSearchChange(value: string) {
     setQuery(value)
+    setActiveIndex(-1)
     setSuggestionsOpen(value.length > 0)
     debouncedSetQuery(value)
   }
@@ -293,6 +335,43 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
     setQuery(title)
     setDebouncedQuery(title)
     setSuggestionsOpen(false)
+    setActiveIndex(-1)
+  }
+
+  function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (suggestions.length === 0) return
+
+    if (event.key === "ArrowDown" && !suggestionsOpen) {
+      event.preventDefault()
+      setSuggestionsOpen(true)
+      return
+    }
+
+    if (!suggestionsOpen) return
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault()
+        setActiveIndex((i) => (i + 1) % suggestions.length)
+        break
+      case "ArrowUp":
+        event.preventDefault()
+        setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1))
+        break
+      case "Enter": {
+        const title = suggestions[activeIndex]
+        if (activeIndex >= 0 && title !== undefined) {
+          event.preventDefault()
+          onSuggestionClick(title)
+        }
+        break
+      }
+      case "Escape":
+        event.preventDefault()
+        setSuggestionsOpen(false)
+        setActiveIndex(-1)
+        break
+    }
   }
 
   return (
@@ -302,26 +381,46 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
         <div className="flex items-center gap-2">
           <div className="relative w-72">
             <Input
+              role="combobox"
               aria-label={t("tasks.searchLabel")}
+              aria-expanded={suggestionsOpen && suggestions.length > 0}
+              aria-controls={listboxId}
+              aria-autocomplete="list"
+              aria-activedescendant={
+                activeIndex >= 0 && activeIndex < suggestions.length
+                  ? `${listboxId}-option-${activeIndex}`
+                  : undefined
+              }
               value={query}
               onChange={(event) => onSearchChange(event.target.value)}
+              onKeyDown={onSearchKeyDown}
+              onBlur={() => {
+                setSuggestionsOpen(false)
+                setActiveIndex(-1)
+              }}
               placeholder={t("tasks.searchPlaceholder")}
             />
             {suggestionsOpen && debouncedQuery && suggestions.length > 0 ? (
               <ul
+                id={listboxId}
                 role="listbox"
                 aria-label={t("tasks.suggestionsLabel")}
                 className="absolute inset-x-0 top-full z-10 mt-1 border border-border bg-background shadow-sm"
               >
-                {suggestions.map((title) => (
-                  <li key={title} role="option">
-                    <button
-                      type="button"
-                      onClick={() => onSuggestionClick(title)}
-                      className="block w-full px-2.5 py-1.5 text-left hover:bg-muted"
-                    >
-                      {title}
-                    </button>
+                {suggestions.map((title, index) => (
+                  <li
+                    key={title}
+                    id={`${listboxId}-option-${index}`}
+                    role="option"
+                    aria-selected={index === activeIndex}
+                    onMouseDown={(event) => {
+                      // Keep focus on the input; selection is committed here.
+                      event.preventDefault()
+                      onSuggestionClick(title)
+                    }}
+                    className="block cursor-pointer px-2.5 py-1.5 hover:bg-muted"
+                  >
+                    {title}
                   </li>
                 ))}
               </ul>
@@ -351,30 +450,50 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
                   key={headerGroup.id}
                   style={{ display: "flex", width: "100%" }}
                 >
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      onClick={
-                        header.column.getCanSort()
-                          ? header.column.getToggleSortingHandler()
-                          : undefined
-                      }
-                      style={{ display: "flex", width: header.getSize() }}
-                      className={`items-center gap-1 ${
-                        header.column.getCanSort() ? "cursor-pointer" : ""
-                      }`}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {header.column.getIsSorted()
-                        ? header.column.getIsSorted() === "asc"
-                          ? "↑"
-                          : "↓"
-                        : null}
-                    </TableHead>
-                  ))}
+                  {headerGroup.headers.map((header) => {
+                    const sortDirection = header.column.getIsSorted()
+                    return (
+                      <TableHead
+                        key={header.id}
+                        aria-sort={
+                          sortDirection === "asc"
+                            ? "ascending"
+                            : sortDirection === "desc"
+                              ? "descending"
+                              : header.column.getCanSort()
+                                ? "none"
+                                : undefined
+                        }
+                        style={{ display: "flex", width: header.getSize() }}
+                        className="items-center gap-1"
+                      >
+                        {header.column.getCanSort() ? (
+                          <button
+                            type="button"
+                            onClick={header.column.getToggleSortingHandler()}
+                            className="inline-flex items-center gap-1 text-left"
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                            <span aria-hidden="true">
+                              {sortDirection === "asc"
+                                ? "↑"
+                                : sortDirection === "desc"
+                                  ? "↓"
+                                  : ""}
+                            </span>
+                          </button>
+                        ) : (
+                          flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )
+                        )}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
               ))}
             </TableHeader>

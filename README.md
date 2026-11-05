@@ -19,3 +19,8 @@ To use the components in your app, import them from the `ui` package.
 ```tsx
 import { Button } from "@workspace/ui/components/button";
 ```
+
+## Deployment
+
+See [docs/deployment.md](docs/deployment.md) for how to deploy `apps/web` to Vercel.
+No production environment is provisioned by this repository.
