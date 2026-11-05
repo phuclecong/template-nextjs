@@ -6,21 +6,21 @@ dashboard, and they never import from `apps/web`.
 
 ## Primitives
 
-| Primitive | Import | Built on |
-| --------- | ------ | -------- |
-| Button    | `@workspace/ui/components/button`    | Base UI `Button` |
-| Dialog    | `@workspace/ui/components/dialog`    | Base UI `Dialog` |
-| Input / Textarea | `@workspace/ui/components/input` | native `<input>` / `<textarea>` |
-| Select    | `@workspace/ui/components/select`    | native `<select>` |
-| Table (+ `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableFooter`, `TableCaption`) | `@workspace/ui/components/table` | native table elements |
-| Form (`Field`, `Label`) | `@workspace/ui/components/form` | native `<div>` / `<label>` |
-| Toast (`Toaster`, `toast`) | `@workspace/ui/components/sonner` | sonner |
+| Primitive                                                                                                 | Import                             | Built on                          |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------- |
+| Button                                                                                                    | `@workspace/ui/components/button`  | Base UI `Button`                  |
+| Dialog                                                                                                    | `@workspace/ui/components/dialog`  | Base UI `Dialog`                  |
+| Input                                                                                                     | `@workspace/ui/components/input`   | Base UI `Input`                   |
+| Textarea                                                                                                  | `@workspace/ui/components/textarea` | native `<textarea>`               |
+| Select                                                                                                    | `@workspace/ui/components/select`  | Base UI `Select`                  |
+| Table (+ `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableFooter`, `TableCaption`) | `@workspace/ui/components/table`   | native table elements             |
+| Field (`FieldLabel`, `FieldDescription`, `FieldError`, …)                                                 | `@workspace/ui/components/field`   | native `<div>` / `<label>` / `<p>` |
+| Toast (`Toaster`, `toast`)                                                                                | `@workspace/ui/components/sonner`  | sonner                            |
 
 Every primitive forwards native props, so it drops into plain `<form>`/table
 usage without an adapter. Shared tokens live in `src/lib`:
 
 - `lib/utils.ts` — `cn` (compiled Tailwind class merging).
-- `lib/field.ts` — `fieldBase`, the shared chrome for form controls.
 
 ## The boundary rule
 
@@ -32,7 +32,7 @@ does not resolve here). Feature components that compose the primitives live in
 
 ## Adding a primitive
 
-1. Add `src/components/<name>.tsx`, importing `cn` from `../lib/utils`.
+1. Add `src/components/<name>.tsx`, importing `cn` from `"cn"`.
 2. Add `src/components/<name>.stories.tsx` with representative stories.
 3. That's it — the `./components/*` export map and the Storybook glob pick it
    up automatically.

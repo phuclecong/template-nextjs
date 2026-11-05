@@ -149,4 +149,8 @@ export const vi: Translation = {
     body: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
     retry: "Thử lại",
   },
+  validation: {
+    required: "Trường này là bắt buộc.",
+    email: "Vui lòng nhập địa chỉ email hợp lệ.",
+  },
 }

@@ -150,6 +150,10 @@ export const en = {
     body: "An unexpected error occurred. Please try again.",
     retry: "Try again",
   },
+  validation: {
+    required: "This field is required.",
+    email: "Enter a valid email address.",
+  },
 }
 
 export type Translation = typeof en

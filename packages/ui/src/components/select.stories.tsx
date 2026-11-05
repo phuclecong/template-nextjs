@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react"
 
-import { Select } from "./select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./select"
 
 const meta = {
   title: "Primitives/Select",
@@ -8,24 +14,37 @@ const meta = {
   parameters: { layout: "centered" },
   tags: ["autodocs"],
   decorators: [(Story) => <div className="w-64">{Story()}</div>],
-  args: {
-    defaultValue: "todo",
-    "aria-label": "Status",
-    children: (
-      <>
-        <option value="todo">Todo</option>
-        <option value="in-progress">In progress</option>
-        <option value="done">Done</option>
-      </>
-    ),
-  },
 } satisfies Meta<typeof Select>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default: Story = {
+  render: () => (
+    <Select defaultValue="todo">
+      <SelectTrigger aria-label="Status">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todo">Todo</SelectItem>
+        <SelectItem value="in-progress">In progress</SelectItem>
+        <SelectItem value="done">Done</SelectItem>
+      </SelectContent>
+    </Select>
+  ),
+}
 
 export const Disabled: Story = {
-  args: { disabled: true },
+  render: () => (
+    <Select defaultValue="todo" disabled>
+      <SelectTrigger aria-label="Status">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="todo">Todo</SelectItem>
+        <SelectItem value="in-progress">In progress</SelectItem>
+        <SelectItem value="done">Done</SelectItem>
+      </SelectContent>
+    </Select>
+  ),
 }
