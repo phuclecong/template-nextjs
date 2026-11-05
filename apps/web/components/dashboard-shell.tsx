@@ -44,9 +44,12 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
           Sign out
         </Button>
       </header>
-      <nav>
+      <nav className="flex gap-4">
         <Link href="/dashboard/tasks" className="text-primary underline">
           Tasks
+        </Link>
+        <Link href="/dashboard/users" className="text-primary underline">
+          Users
         </Link>
       </nav>
     </main>

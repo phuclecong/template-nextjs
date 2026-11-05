@@ -5,6 +5,7 @@ import { useCreate, useDelete, useUpdate, type HttpError } from "@refinedev/core
 import type { TaskPriority, TaskStatus } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
 import { Modal } from "@/components/modal"
+import { describeError } from "@/lib/http-error"
 
 /** The shape of a task the write path needs; rows from the table satisfy it. */
 export type TaskWriteData = {
@@ -73,21 +74,6 @@ function toPayload(values: TaskFormValues): TaskPayload {
     assigneeId: values.assigneeId === "" ? null : values.assigneeId,
     dueDate: values.dueDate === "" ? null : values.dueDate,
   }
-}
-
-/** Extracts a human-readable message from a simple-rest/axios error. */
-function describeError(error: unknown): string | undefined {
-  if (!error || typeof error !== "object") return undefined
-  const candidate = error as {
-    message?: unknown
-    response?: { data?: { message?: unknown } }
-  }
-  const apiMessage = candidate.response?.data?.message
-  if (typeof apiMessage === "string" && apiMessage) return apiMessage
-  if (typeof candidate.message === "string" && candidate.message) {
-    return candidate.message
-  }
-  return undefined
 }
 
 export function TaskFormDialog({
