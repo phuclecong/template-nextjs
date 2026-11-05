@@ -3,11 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "turbo build",
+    "build": "turbo build && turbo build-storybook",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
+    "storybook": "turbo storybook",
+    "build-storybook": "turbo build-storybook"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

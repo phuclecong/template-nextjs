@@ -1,0 +1,37 @@
+{
+  "name": "@workspace/api",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./service": "./src/service.ts",
+    "./handlers": "./src/handlers.ts",
+    "./data-handlers": "./src/data-handlers.ts",
+    "./collections": "./src/collections.ts",
+    "./auth": "./src/auth.ts"
+  },
+  "scripts": {
+    "generate:types": "openapi-typescript openapi.yaml -o src/generated/api.d.ts",
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,yaml,json,md}\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@msw/data": "^1.1.8",
+    "@msw/source": "^0.7.0",
+    "msw": "^3.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5",
+    "vitest": "^5.1.0"
+  }
+}
