@@ -36,6 +36,10 @@ _Avoid_: State, phase
 The relative urgency of a Task: `low`, `medium`, or `high`.
 _Avoid_: Severity, importance
 
+**Bulk action**:
+A single change applied to many Tasks at once, setting their Status, Priority, or Assignee.
+_Avoid_: Batch update, mass edit
+
 **Locale**:
 A language and region pair (e.g. `en`, `vi`) used to translate the interface and format currency.
 _Avoid_: Language, region

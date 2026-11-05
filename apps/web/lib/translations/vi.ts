@@ -42,6 +42,15 @@ export const vi: Translation = {
     signIn: "Đăng nhập",
     failed: "Đăng ký thất bại.",
   },
+  table: {
+    pagination: {
+      label: "Phân trang",
+      rowsPerPage: "Số dòng mỗi trang",
+      prev: "Trang trước",
+      next: "Trang sau",
+      pageLabel: "Trang {page}",
+    },
+  },
   tasks: {
     title: "Công việc",
     searchLabel: "Tìm công việc",
@@ -71,13 +80,6 @@ export const vi: Translation = {
       updatedWithFailures:
         "Đã cập nhật {{updated}} công việc, {{failed}} thất bại",
       failed: "Cập nhật hàng loạt thất bại",
-    },
-    pagination: {
-      label: "Phân trang",
-      rowsPerPage: "Số dòng mỗi trang",
-      prev: "Trang trước",
-      next: "Trang sau",
-      pageLabel: "Trang {page}",
     },
     columns: {
       title: "Tiêu đề",

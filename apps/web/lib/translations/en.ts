@@ -43,6 +43,15 @@ export const en = {
     signIn: "Sign in",
     failed: "Registration failed.",
   },
+  table: {
+    pagination: {
+      label: "Pagination",
+      rowsPerPage: "Rows per page",
+      prev: "Previous page",
+      next: "Next page",
+      pageLabel: "Page {page}",
+    },
+  },
   tasks: {
     title: "Tasks",
     searchLabel: "Search tasks",
@@ -71,13 +80,6 @@ export const en = {
       updated: "Updated {{count}} tasks",
       updatedWithFailures: "Updated {{updated}} tasks, {{failed}} failed",
       failed: "Bulk update failed",
-    },
-    pagination: {
-      label: "Pagination",
-      rowsPerPage: "Rows per page",
-      prev: "Previous page",
-      next: "Next page",
-      pageLabel: "Page {page}",
     },
     columns: {
       title: "Title",
