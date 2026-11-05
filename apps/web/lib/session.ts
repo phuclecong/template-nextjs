@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
+import type { Role } from "@workspace/api/collections"
 
 /**
  * Signed, httpOnly session cookie (ADR-0003). The cookie carries the minimal
@@ -10,11 +11,14 @@ import { SignJWT, jwtVerify } from "jose"
 
 export interface SessionPayload {
   sub: string
-  role: "admin" | "member"
+  role: Role
   name: string
   email: string
   accessToken: string
 }
+
+/** The identity subset the dashboard shell and sidebar render in the footer. */
+export type DashboardUser = Pick<SessionPayload, "name" | "email" | "role">
 
 const COOKIE_NAME = "session"
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 days
