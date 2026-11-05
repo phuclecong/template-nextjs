@@ -74,6 +74,7 @@ export const en = {
     },
     pagination: {
       label: "Pagination",
+      rowsPerPage: "Rows per page",
       prev: "Previous page",
       next: "Next page",
       pageLabel: "Page {page}",

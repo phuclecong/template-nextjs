@@ -21,7 +21,16 @@ import type { TaskPriority, TaskStatus } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Input } from "@workspace/ui/components/input"
-import { Pagination } from "@workspace/ui/components/pagination"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  paginationItems,
+} from "@workspace/ui/components/pagination"
 import {
   Select,
   SelectContent,
@@ -48,6 +57,7 @@ import { describeError } from "@/lib/http-error"
 import { DeleteTaskDialog, TaskFormDialog } from "@/components/task-dialogs"
 
 const PAGE_SIZE = 30
+const PAGE_SIZE_OPTIONS = [10, 30, 50, 100]
 const SEARCH_DEBOUNCE_MS = 300
 const STATUS_OPTIONS: TaskStatus[] = ["todo", "in-progress", "done", "blocked"]
 const PRIORITY_OPTIONS: TaskPriority[] = ["low", "medium", "high"]
@@ -175,6 +185,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
   const sortField = searchParams.get("sort") ?? "title"
   const sortDesc = searchParams.get("order") === "desc"
   const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1)
+  const pageSize = Math.max(1, Number(searchParams.get("pageSize")) || PAGE_SIZE)
 
   // Search input is locally controlled for typing feel; its value is written
   // to the URL (debounced) and mirrored back when the URL changes externally.
@@ -245,7 +256,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
 
   const tasksQuery = useList<TaskApi>({
     resource: "tasks",
-    pagination: { currentPage: page, pageSize: PAGE_SIZE },
+    pagination: { currentPage: page, pageSize },
     sorters,
     filters,
   })
@@ -264,7 +275,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
   }, [usersQuery.result.data])
 
   const total = tasksQuery.result.total ?? 0
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   const rows = useMemo<TaskRow[]>(
     () =>
@@ -294,7 +305,7 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
   // A page, filter, or sort change invalidates the current selection.
   useEffect(() => {
     setRowSelection({})
-  }, [page, status, priority, assignee, dueFrom, dueTo, sortField, sortDesc])
+  }, [page, pageSize, status, priority, assignee, dueFrom, dueTo, sortField, sortDesc])
 
   const invalidate = useInvalidate()
   const bulkMutation = useCustomMutation<
@@ -761,17 +772,76 @@ function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
         </div>
       )}
 
-      <div className="flex justify-end">
-        <Pagination
-          page={page}
-          pageCount={pageCount}
-          onPageChange={(nextPage) => updateParams({ page: String(nextPage) })}
-          label={t("tasks.pagination.label")}
-          prevLabel={t("tasks.pagination.prev")}
-          nextLabel={t("tasks.pagination.next")}
-          pageLabel={t("tasks.pagination.pageLabel")}
-        />
-      </div>
+      {rows.length > 0 && (
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {t("tasks.pagination.rowsPerPage")}
+            </span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) =>
+                updateParams({ pageSize: value ?? String(PAGE_SIZE), page: "" })
+              }
+            >
+              <SelectTrigger
+                size="sm"
+                aria-label={t("tasks.pagination.rowsPerPage")}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {pageCount > 1 && (
+            <Pagination aria-label={t("tasks.pagination.label")}>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    aria-label={t("tasks.pagination.prev")}
+                    disabled={page <= 1}
+                    onClick={() => updateParams({ page: String(page - 1) })}
+                  />
+                </PaginationItem>
+                {paginationItems(page, pageCount).map((item, index) =>
+                  item === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${index}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        isActive={item === page}
+                        aria-label={t("tasks.pagination.pageLabel").replace(
+                          "{page}",
+                          String(item)
+                        )}
+                        onClick={() => updateParams({ page: String(item) })}
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    aria-label={t("tasks.pagination.next")}
+                    disabled={page >= pageCount}
+                    onClick={() => updateParams({ page: String(page + 1) })}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </div>
+      )}
 
       <TaskFormDialog
         key={formResetKey}

@@ -1,10 +1,128 @@
 "use client"
 
+import * as React from "react"
 import { cn } from "cn"
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MoreHorizontalIcon,
+} from "lucide-react"
 import { Button } from "./button"
 
-function pageItems(current: number, total: number): Array<number | "ellipsis"> {
+function Pagination({
+  className,
+  "aria-label": ariaLabel = "Pagination",
+  ...props
+}: React.ComponentProps<"nav">) {
+  return (
+    <nav
+      role="navigation"
+      aria-label={ariaLabel}
+      data-slot="pagination"
+      className={cn("flex", className)}
+      {...props}
+    />
+  )
+}
+
+function PaginationContent({
+  className,
+  ...props
+}: React.ComponentProps<"ul">) {
+  return (
+    <ul
+      data-slot="pagination-content"
+      className={cn("flex items-center gap-1", className)}
+      {...props}
+    />
+  )
+}
+
+function PaginationItem({ ...props }: React.ComponentProps<"li">) {
+  return <li data-slot="pagination-item" {...props} />
+}
+
+type PaginationLinkProps = {
+  isActive?: boolean
+} & Pick<React.ComponentProps<typeof Button>, "size"> &
+  React.ComponentProps<"button">
+
+function PaginationLink({
+  className,
+  isActive,
+  size = "icon-sm",
+  ...props
+}: PaginationLinkProps) {
+  return (
+    <Button
+      type="button"
+      variant={isActive ? "default" : "outline"}
+      size={size}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(className)}
+      {...props}
+    />
+  )
+}
+
+function PaginationPrevious({
+  className,
+  "aria-label": ariaLabel = "Previous page",
+  ...props
+}: PaginationLinkProps) {
+  return (
+    <PaginationLink
+      aria-label={ariaLabel}
+      size="icon-sm"
+      className={cn(className)}
+      {...props}
+    >
+      <ChevronLeftIcon />
+    </PaginationLink>
+  )
+}
+
+function PaginationNext({
+  className,
+  "aria-label": ariaLabel = "Next page",
+  ...props
+}: PaginationLinkProps) {
+  return (
+    <PaginationLink
+      aria-label={ariaLabel}
+      size="icon-sm"
+      className={cn(className)}
+      {...props}
+    >
+      <ChevronRightIcon />
+    </PaginationLink>
+  )
+}
+
+function PaginationEllipsis({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span
+      aria-hidden="true"
+      data-slot="pagination-ellipsis"
+      className={cn(
+        "flex size-7 items-center justify-center text-muted-foreground",
+        className
+      )}
+      {...props}
+    >
+      <MoreHorizontalIcon className="size-4" />
+    </span>
+  )
+}
+
+/** The page numbers (and `"ellipsis"` placeholders) to render for a page window. */
+function paginationItems(
+  current: number,
+  total: number
+): Array<number | "ellipsis"> {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1)
   }
@@ -18,77 +136,13 @@ function pageItems(current: number, total: number): Array<number | "ellipsis"> {
   return items
 }
 
-function Pagination({
-  page,
-  pageCount,
-  onPageChange,
-  label = "Pagination",
-  prevLabel = "Previous page",
-  nextLabel = "Next page",
-  pageLabel = "Page {page}",
-  className,
-}: {
-  page: number
-  pageCount: number
-  onPageChange: (page: number) => void
-  label?: string
-  prevLabel?: string
-  nextLabel?: string
-  pageLabel?: string
-  className?: string
-}) {
-  if (pageCount <= 1) return null
-
-  return (
-    <nav
-      aria-label={label}
-      className={cn("flex items-center gap-1", className)}
-    >
-      <Button
-        type="button"
-        variant="outline"
-        size="icon-sm"
-        aria-label={prevLabel}
-        disabled={page <= 1}
-        onClick={() => onPageChange(page - 1)}
-      >
-        <ChevronLeftIcon />
-      </Button>
-      {pageItems(page, pageCount).map((item, index) =>
-        item === "ellipsis" ? (
-          <span
-            key={`ellipsis-${index}`}
-            aria-hidden="true"
-            className="px-1 text-muted-foreground"
-          >
-            …
-          </span>
-        ) : (
-          <Button
-            key={item}
-            type="button"
-            variant={item === page ? "default" : "outline"}
-            size="icon-sm"
-            aria-current={item === page ? "page" : undefined}
-            aria-label={pageLabel.replace("{page}", String(item))}
-            onClick={() => onPageChange(item)}
-          >
-            {item}
-          </Button>
-        )
-      )}
-      <Button
-        type="button"
-        variant="outline"
-        size="icon-sm"
-        aria-label={nextLabel}
-        disabled={page >= pageCount}
-        onClick={() => onPageChange(page + 1)}
-      >
-        <ChevronRightIcon />
-      </Button>
-    </nav>
-  )
+export {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+  paginationItems,
 }
-
-export { Pagination }

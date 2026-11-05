@@ -59,3 +59,18 @@ test("paginates and reflects the page in the URL", async ({ page }) => {
   await pagination.getByRole("button", { name: "Page 2" }).click()
   await expect(page).toHaveURL(/page=2/)
 })
+
+test("changes rows per page and resets to page one", async ({ page }) => {
+  await login(page, "admin@example.com", "adminpass")
+  await openTasks(page)
+
+  const pagination = page.getByRole("navigation", { name: "Pagination" })
+  await pagination.getByRole("button", { name: "Page 2" }).click()
+  await expect(page).toHaveURL(/page=2/)
+
+  await page.getByLabel("Rows per page").click()
+  await page.getByRole("option", { name: "10", exact: true }).click()
+
+  await expect(page).toHaveURL(/pageSize=10/)
+  await expect(page).not.toHaveURL(/page=/)
+})

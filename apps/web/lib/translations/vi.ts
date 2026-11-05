@@ -74,6 +74,7 @@ export const vi: Translation = {
     },
     pagination: {
       label: "Phân trang",
+      rowsPerPage: "Số dòng mỗi trang",
       prev: "Trang trước",
       next: "Trang sau",
       pageLabel: "Trang {page}",
