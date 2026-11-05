@@ -17,9 +17,10 @@ test("admin changes a user's role and deletes a user", async ({ page }) => {
   await expect(page.getByRole("cell", { name: "Mia Member" })).toBeVisible()
 
   // Promote Mia Member to admin; the role select reflects the change.
-  await page.getByLabel("Role for Mia Member").selectOption("admin")
+  await page.getByLabel("Role for Mia Member").click()
+  await page.getByRole("option", { name: "admin" }).click()
   await expect(page.getByText("Role updated")).toBeVisible()
-  await expect(page.getByLabel("Role for Mia Member")).toHaveValue("admin")
+  await expect(page.getByLabel("Role for Mia Member")).toContainText("admin")
 
   // Delete Mia Member.
   const miaRow = page.getByRole("row").filter({ hasText: "Mia Member" })

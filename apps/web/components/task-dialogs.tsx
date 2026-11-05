@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useState } from "react"
+import { useId, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import {
   useCreate,
@@ -8,12 +8,27 @@ import {
   useUpdate,
   type HttpError,
 } from "@refinedev/core"
-import type { TaskPriority, TaskStatus } from "@workspace/api/collections"
+import {
+  taskPrioritySchema,
+  taskStatusSchema,
+  type TaskPriority,
+  type TaskStatus,
+} from "@workspace/api/collections"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@workspace/ui/components/button"
 import { Dialog } from "@workspace/ui/components/dialog"
-import { Field } from "@workspace/ui/components/form"
-import { Input, Textarea } from "@workspace/ui/components/input"
-import { Select } from "@workspace/ui/components/select"
+import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
+import { Input } from "@workspace/ui/components/input"
+import { Textarea } from "@workspace/ui/components/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { describeError } from "@/lib/http-error"
 
 /** The shape of a task the write path needs; rows from the table satisfy it. */
@@ -95,8 +110,25 @@ export function TaskFormDialog({
 }) {
   const { t } = useTranslation()
   const isEdit = task !== null
-  const [values, setValues] = useState<TaskFormValues>(() => toFormValues(task))
   const id = useId()
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        title: z.string().min(1, t("validation.required")),
+        description: z.string(),
+        status: taskStatusSchema,
+        priority: z.union([taskPrioritySchema, z.literal("")]),
+        assigneeId: z.string(),
+        dueDate: z.string(),
+      }),
+    [t]
+  )
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: toFormValues(task),
+  })
 
   const createMutation = useCreate<TaskWriteData, HttpError, TaskPayload>({
     resource: "tasks",
@@ -109,15 +141,7 @@ export function TaskFormDialog({
     ? updateMutation.mutation.isPending
     : createMutation.mutation.isPending
 
-  function setField<Key extends keyof TaskFormValues>(
-    key: Key,
-    value: TaskFormValues[Key]
-  ) {
-    setValues((prev) => ({ ...prev, [key]: value }))
-  }
-
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  function onSubmit(values: z.infer<typeof schema>) {
     const payload = toPayload(values)
     if (payload.title === "") return
 
@@ -165,87 +189,162 @@ export function TaskFormDialog({
       title={isEdit ? t("taskDialog.editTitle") : t("taskDialog.newTitle")}
       onClose={onClose}
     >
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <Field label={t("taskDialog.title")} htmlFor={`${id}-title`}>
-          <Input
-            id={`${id}-title`}
-            value={values.title}
-            onChange={(event) => setField("title", event.target.value)}
-            required
-          />
-        </Field>
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-3"
+      >
+        <Controller
+          control={form.control}
+          name="title"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={`${id}-title`}>{t("taskDialog.title")}</FieldLabel>
+              <Input
+                {...field}
+                id={`${id}-title`}
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
 
-        <Field
-          label={t("taskDialog.description")}
-          htmlFor={`${id}-description`}
-        >
-          <Textarea
-            id={`${id}-description`}
-            value={values.description}
-            onChange={(event) => setField("description", event.target.value)}
-            rows={3}
-          />
-        </Field>
+        <Controller
+          control={form.control}
+          name="description"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={`${id}-description`}>
+                {t("taskDialog.description")}
+              </FieldLabel>
+              <Textarea
+                {...field}
+                id={`${id}-description`}
+                rows={3}
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label={t("taskDialog.status")} htmlFor={`${id}-status`}>
-            <Select
-              id={`${id}-status`}
-              value={values.status}
-              onChange={(event) =>
-                setField("status", event.target.value as TaskStatus)
-              }
-            >
-              {STATUS_OPTIONS.map((status) => (
-                <option key={status} value={status}>
-                  {t(`tasks.status.${status}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <Controller
+            control={form.control}
+            name="status"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={`${id}-status`}>
+                  {t("taskDialog.status")}
+                </FieldLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                >
+                  <SelectTrigger
+                    id={`${id}-status`}
+                    aria-invalid={fieldState.invalid}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {t(`tasks.status.${status}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field label={t("taskDialog.priority")} htmlFor={`${id}-priority`}>
-            <Select
-              id={`${id}-priority`}
-              value={values.priority}
-              onChange={(event) =>
-                setField("priority", event.target.value as TaskPriority | "")
-              }
-            >
-              <option value="">{t("taskDialog.none")}</option>
-              {PRIORITY_OPTIONS.map((priority) => (
-                <option key={priority} value={priority}>
-                  {t(`tasks.priority.${priority}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <Controller
+            control={form.control}
+            name="priority"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={`${id}-priority`}>
+                  {t("taskDialog.priority")}
+                </FieldLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                >
+                  <SelectTrigger
+                    id={`${id}-priority`}
+                    aria-invalid={fieldState.invalid}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{t("taskDialog.none")}</SelectItem>
+                    {PRIORITY_OPTIONS.map((priority) => (
+                      <SelectItem key={priority} value={priority}>
+                        {t(`tasks.priority.${priority}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label={t("taskDialog.assignee")} htmlFor={`${id}-assignee`}>
-            <Select
-              id={`${id}-assignee`}
-              value={values.assigneeId}
-              onChange={(event) => setField("assigneeId", event.target.value)}
-            >
-              <option value="">{t("taskDialog.unassigned")}</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
+          <Controller
+            control={form.control}
+            name="assigneeId"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={`${id}-assignee`}>
+                  {t("taskDialog.assignee")}
+                </FieldLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                >
+                  <SelectTrigger
+                    id={`${id}-assignee`}
+                    aria-invalid={fieldState.invalid}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{t("taskDialog.unassigned")}</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field label={t("taskDialog.dueDate")} htmlFor={`${id}-due-date`}>
-            <Input
-              id={`${id}-due-date`}
-              type="date"
-              value={values.dueDate}
-              onChange={(event) => setField("dueDate", event.target.value)}
-            />
-          </Field>
+          <Controller
+            control={form.control}
+            name="dueDate"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={`${id}-due-date`}>
+                  {t("taskDialog.dueDate")}
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id={`${id}-due-date`}
+                  type="date"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
         </div>
 
         <div className="mt-2 flex justify-end gap-2">

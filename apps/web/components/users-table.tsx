@@ -13,7 +13,13 @@ import {
 import type { Role } from "@workspace/api/collections"
 import { Button } from "@workspace/ui/components/button"
 import { Dialog } from "@workspace/ui/components/dialog"
-import { Select } from "@workspace/ui/components/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import {
   Table,
   TableBody,
@@ -136,17 +142,21 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
                   <TableCell>
                     {isAdmin ? (
                       <Select
-                        aria-label={t("users.roleLabel", { name: user.name })}
                         value={user.role}
-                        onChange={(event) =>
-                          changeRole(user, event.target.value as Role)
-                        }
+                        onValueChange={(value) => changeRole(user, value as Role)}
                       >
-                        {ROLE_OPTIONS.map((role) => (
-                          <option key={role} value={role}>
-                            {t(`users.role.${role}`)}
-                          </option>
-                        ))}
+                        <SelectTrigger
+                          aria-label={t("users.roleLabel", { name: user.name })}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {t(`users.role.${role}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     ) : (
                       t(`users.role.${user.role}`)

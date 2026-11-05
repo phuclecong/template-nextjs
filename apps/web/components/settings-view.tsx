@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { useTheme } from "next-themes"
 import { useTranslation } from "react-i18next"
 import { useCustomMutation, type HttpError } from "@refinedev/core"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@workspace/ui/components/button"
-import { Field } from "@workspace/ui/components/form"
+import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { describeError } from "@/lib/http-error"
 import { formatCurrency } from "@/lib/currency"
@@ -74,8 +77,22 @@ export function SettingsView() {
 
 function ChangePasswordForm() {
   const { t } = useTranslation()
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        currentPassword: z.string().min(1, t("validation.required")),
+        newPassword: z.string().min(1, t("validation.required")),
+      }),
+    [t]
+  )
+
+  type ChangePasswordValues = z.infer<typeof schema>
+
+  const form = useForm<ChangePasswordValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { currentPassword: "", newPassword: "" },
+  })
 
   const passwordMutation = useCustomMutation<
     { id?: string },
@@ -83,15 +100,12 @@ function ChangePasswordForm() {
     PasswordPayload
   >({})
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!currentPassword || !newPassword) return
-
+  function onSubmit(values: ChangePasswordValues) {
     passwordMutation.mutate(
       {
         url: "/api/password",
         method: "put",
-        values: { currentPassword, newPassword },
+        values,
         successNotification: {
           message: t("settings.password.success"),
           type: "success",
@@ -104,8 +118,7 @@ function ChangePasswordForm() {
       },
       {
         onSuccess: () => {
-          setCurrentPassword("")
-          setNewPassword("")
+          form.reset()
         },
       }
     )
@@ -114,30 +127,49 @@ function ChangePasswordForm() {
   return (
     <section className="flex flex-col gap-2">
       <h2 className="font-medium">{t("settings.password.title")}</h2>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <Field
-          label={t("settings.password.current")}
-          htmlFor="current-password"
-        >
-          <Input
-            id="current-password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={currentPassword}
-            onChange={(event) => setCurrentPassword(event.target.value)}
-          />
-        </Field>
-        <Field label={t("settings.password.new")} htmlFor="new-password">
-          <Input
-            id="new-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
-          />
-        </Field>
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-3"
+      >
+        <Controller
+          control={form.control}
+          name="currentPassword"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                {t("settings.password.current")}
+              </FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="password"
+                autoComplete="current-password"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="newPassword"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                {t("settings.password.new")}
+              </FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="password"
+                autoComplete="new-password"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
         <div>
           <Button type="submit" disabled={passwordMutation.mutation.isPending}>
             {t("settings.password.submit")}

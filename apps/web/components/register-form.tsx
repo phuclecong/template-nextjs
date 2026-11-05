@@ -3,10 +3,12 @@
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useRegister } from "@refinedev/core"
-import { useState } from "react"
-import type { FormEvent } from "react"
+import { useMemo, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@workspace/ui/components/button"
-import { Field } from "@workspace/ui/components/form"
+import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
 export function RegisterForm() {
@@ -18,63 +20,103 @@ export function RegisterForm() {
   }>()
   const [error, setError] = useState<string | null>(null)
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t("validation.required")),
+        email: z.email(t("validation.email")),
+        password: z.string().min(1, t("validation.required")),
+      }),
+    [t]
+  )
+
+  type RegisterValues = z.infer<typeof schema>
+
+  const form = useForm<RegisterValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", email: "", password: "" },
+  })
+
+  function onSubmit(values: RegisterValues) {
     setError(null)
-    register(
-      {
-        name: String(form.get("name") ?? ""),
-        email: String(form.get("email") ?? ""),
-        password: String(form.get("password") ?? ""),
+    register(values, {
+      onSuccess: (result) => {
+        if (!result.success) {
+          setError(
+            result.error instanceof Error
+              ? result.error.message
+              : t("register.failed")
+          )
+          return
+        }
+        window.location.assign(result.redirectTo ?? "/dashboard")
       },
-      {
-        onSuccess: (result) => {
-          if (!result.success) {
-            setError(
-              result.error instanceof Error
-                ? result.error.message
-                : t("register.failed")
-            )
-            return
-          }
-          window.location.assign(result.redirectTo ?? "/dashboard")
-        },
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : t("register.failed"))
-        },
-      }
-    )
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : t("register.failed"))
+      },
+    })
   }
 
   return (
     <main className="flex min-h-svh items-center justify-center p-6">
       <form
-        onSubmit={onSubmit}
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
         className="flex w-full max-w-sm flex-col gap-4 text-sm"
       >
         <h1 className="text-lg font-medium">{t("register.title")}</h1>
-        <Field label={t("register.name")} htmlFor="name">
-          <Input id="name" name="name" required autoComplete="name" />
-        </Field>
-        <Field label={t("register.email")} htmlFor="email">
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-          />
-        </Field>
-        <Field label={t("register.password")} htmlFor="password">
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            required
-            autoComplete="new-password"
-          />
-        </Field>
+        <Controller
+          control={form.control}
+          name="name"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>{t("register.name")}</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                autoComplete="name"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="email"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>{t("register.email")}</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="email"
+                autoComplete="email"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="password"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>
+                {t("register.password")}
+              </FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="password"
+                autoComplete="new-password"
+                aria-invalid={fieldState.invalid}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
         {error ? (
           <p role="alert" className="text-destructive">
             {error}
