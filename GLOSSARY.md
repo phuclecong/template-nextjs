@@ -20,6 +20,14 @@ _Avoid_: Permission group, level
 The User responsible for a Task.
 _Avoid_: Owner
 
+**Assign**:
+To set a Task's Assignee to a chosen User, or clear it so the Task is unassigned.
+_Avoid_: Claim, reassign
+
+**Due date**:
+The date by which a Task should be completed. Optional; a Task without one has no due date.
+_Avoid_: Deadline
+
 **Status**:
 The lifecycle state of a Task: `todo`, `in-progress`, `done`, or `blocked`.
 _Avoid_: State, phase
@@ -27,6 +35,10 @@ _Avoid_: State, phase
 **Priority**:
 The relative urgency of a Task: `low`, `medium`, or `high`.
 _Avoid_: Severity, importance
+
+**Bulk action**:
+A single change applied to many Tasks at once, setting their Status, Priority, or Assignee.
+_Avoid_: Batch update, mass edit
 
 **Locale**:
 A language and region pair (e.g. `en`, `vi`) used to translate the interface and format currency.

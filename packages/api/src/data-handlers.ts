@@ -108,6 +108,11 @@ function listTasks(request: Request): Response {
 
   const url = new URL(request.url)
   const q = url.searchParams.get("q")?.trim().toLowerCase()
+  const status = url.searchParams.get("status")
+  const priority = url.searchParams.get("priority")
+  const assigneeId = url.searchParams.get("assigneeId")
+  const dueDateGte = url.searchParams.get("dueDate_gte")
+  const dueDateLte = url.searchParams.get("dueDate_lte")
   const start = Number(url.searchParams.get("_start") ?? 0)
   const endParam = url.searchParams.get("_end")
   const end = endParam ? Number(endParam) : undefined
@@ -121,6 +126,29 @@ function listTasks(request: Request): Response {
   if (q) {
     items = items.filter((task) => task.title.toLowerCase().includes(q))
   }
+  if (status && isStatus(status)) {
+    items = items.filter((task) => task.status === status)
+  }
+  if (priority && isPriority(priority)) {
+    items = items.filter((task) => task.priority === priority)
+  }
+  if (assigneeId) {
+    items = items.filter((task) =>
+      assigneeId === "unassigned"
+        ? task.assigneeId == null
+        : task.assigneeId === assigneeId
+    )
+  }
+  if (dueDateGte) {
+    items = items.filter(
+      (task) => task.dueDate != null && task.dueDate >= dueDateGte
+    )
+  }
+  if (dueDateLte) {
+    items = items.filter(
+      (task) => task.dueDate != null && task.dueDate <= dueDateLte
+    )
+  }
   items.sort((a, b) => {
     const result = compareTaskValues(a, b, sortField)
     return descending ? -result : result
@@ -132,6 +160,64 @@ function listTasks(request: Request): Response {
     status: 200,
     headers: { "x-total-count": String(total) },
   })
+}
+
+/** Applies a partial update to several tasks; members may only touch their own. */
+async function bulkUpdateTasks(request: Request): Promise<Response> {
+  const actor = getAuthUser(request)
+  if (!actor) return fail("unauthorized", "Authentication required.", 401)
+
+  const body = await readJson(request)
+  if (!body) return fail("invalid_request", "A JSON body is required.", 400)
+
+  const rawIds = body.ids
+  const ids = Array.isArray(rawIds)
+    ? rawIds.filter((id): id is string => typeof id === "string")
+    : []
+  if (ids.length === 0) {
+    return fail("invalid_request", "A non-empty ids array is required.", 400)
+  }
+
+  const hasStatus = isStatus(body.status)
+  const hasPriority = isPriority(body.priority) || body.priority === null
+  const hasAssigneeId =
+    typeof body.assigneeId === "string" || body.assigneeId === null
+
+  if (!hasStatus && !hasPriority && !hasAssigneeId) {
+    return fail(
+      "invalid_request",
+      "At least one of status, priority, or assigneeId is required.",
+      400
+    )
+  }
+
+  let updated = 0
+  const failed: Array<{ id: string; reason: string }> = []
+
+  for (const id of ids) {
+    const target = tasks.findFirst((query) => query.where({ id }))
+    if (!target) {
+      failed.push({ id, reason: "not_found" })
+      continue
+    }
+    if (actor.role !== "admin" && target.assigneeId !== actor.id) {
+      failed.push({ id, reason: "forbidden" })
+      continue
+    }
+
+    await tasks.update(target, {
+      data(draft) {
+        if (hasStatus) draft.status = body.status as TaskStatus
+        if (hasPriority) draft.priority = body.priority as TaskPriority | null
+        if (hasAssigneeId) draft.assigneeId = body.assigneeId as string | null
+        draft.updatedAt = new Date().toISOString()
+      },
+      strict: true,
+    })
+    updated += 1
+  }
+
+  return ok({ updated, failed })
 }
 
 export const dataHandlers = [
@@ -241,6 +327,8 @@ export const dataHandlers = [
     })
     return ok(task, 201)
   }),
+
+  http.patch("*/api/tasks/bulk", ({ request }) => bulkUpdateTasks(request)),
 
   http.patch("*/api/tasks/:id", async ({ request, params }) => {
     const actor = getAuthUser(request)

@@ -225,6 +225,151 @@ describe("tasks", () => {
     expect(pageList.map((task) => task.title)).toEqual(sorted)
   })
 
+  it("filters by status, priority, assignee, and unassigned", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+
+    const byStatus = await api("/api/tasks?status=done", { token: accessToken })
+    const statusList = (await byStatus.json()) as Array<{ status: string }>
+    expect(statusList.length).toBeGreaterThan(0)
+    for (const task of statusList) expect(task.status).toBe("done")
+
+    const byPriority = await api("/api/tasks?priority=high", {
+      token: accessToken,
+    })
+    const priorityList = (await byPriority.json()) as Array<{ priority: string }>
+    for (const task of priorityList) expect(task.priority).toBe("high")
+
+    const byAssignee = await api("/api/tasks?assigneeId=usr_admin", {
+      token: accessToken,
+    })
+    const assigneeList = (await byAssignee.json()) as Array<{
+      assigneeId: string | null
+    }>
+    expect(assigneeList.length).toBeGreaterThan(0)
+    for (const task of assigneeList) expect(task.assigneeId).toBe("usr_admin")
+
+    const unassigned = await api("/api/tasks?assigneeId=unassigned", {
+      token: accessToken,
+    })
+    const unassignedList = (await unassigned.json()) as Array<{
+      assigneeId: string | null
+    }>
+    expect(unassignedList.length).toBeGreaterThan(0)
+    for (const task of unassignedList) expect(task.assigneeId).toBeNull()
+  })
+
+  it("combines filters with AND", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+    const res = await api("/api/tasks?status=done&priority=high", {
+      token: accessToken,
+    })
+    const list = (await res.json()) as Array<{
+      status: string
+      priority: string
+    }>
+    expect(list.length).toBeGreaterThan(0)
+    for (const task of list) {
+      expect(task.status).toBe("done")
+      expect(task.priority).toBe("high")
+    }
+  })
+
+  it("filters by an inclusive due-date range and excludes null due dates", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+
+    const exact = await api(
+      "/api/tasks?dueDate_gte=2026-01-05&dueDate_lte=2026-01-05",
+      { token: accessToken }
+    )
+    const exactList = (await exact.json()) as Array<{ dueDate: string | null }>
+    expect(exactList).toHaveLength(1)
+    expect(exactList[0]?.dueDate).toBe("2026-01-05")
+
+    const range = await api(
+      "/api/tasks?dueDate_gte=2026-01-05&dueDate_lte=2026-01-10",
+      { token: accessToken }
+    )
+    const rangeList = (await range.json()) as Array<{ dueDate: string | null }>
+    expect(rangeList.length).toBeGreaterThan(0)
+    for (const task of rangeList) {
+      expect(task.dueDate).not.toBeNull()
+      expect(task.dueDate! >= "2026-01-05").toBe(true)
+      expect(task.dueDate! <= "2026-01-10").toBe(true)
+    }
+  })
+
+  it("requires auth to bulk update (401)", async () => {
+    const res = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      body: { ids: ["tsk_001"], status: "done" },
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it("rejects a bulk update without any field (400)", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+    const res = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      token: accessToken,
+      body: { ids: ["tsk_001"] },
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it("bulk-updates tasks and reports missing ids as failed", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+    const res = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      token: accessToken,
+      body: { ids: ["tsk_001", "tsk_002", "missing"], status: "done" },
+    })
+    expect(res.status).toBe(200)
+    const result = (await res.json()) as {
+      updated: number
+      failed: { id: string; reason: string }[]
+    }
+    expect(result.updated).toBe(2)
+    expect(result.failed).toEqual([{ id: "missing", reason: "not_found" }])
+  })
+
+  it("lets a member bulk-update only their own tasks", async () => {
+    const { accessToken } = await login("member@example.com", "memberpass")
+    const res = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      token: accessToken,
+      body: { ids: ["tsk_001", "tsk_002"], status: "blocked" },
+    })
+    expect(res.status).toBe(200)
+    const result = (await res.json()) as {
+      updated: number
+      failed: { id: string; reason: string }[]
+    }
+    expect(result.updated).toBe(1)
+    expect(result.failed).toEqual([{ id: "tsk_001", reason: "forbidden" }])
+  })
+
+  it("clears priority and assignee with null in a bulk update", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+    const res = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      token: accessToken,
+      body: { ids: ["tsk_001"], priority: null, assigneeId: null },
+    })
+    expect(res.status).toBe(200)
+    const result = (await res.json()) as { updated: number }
+    expect(result.updated).toBe(1)
+
+    const after = await api("/api/tasks?q=author", { token: accessToken })
+    const list = (await after.json()) as Array<{
+      id: string
+      priority: string | null
+      assigneeId: string | null
+    }>
+    const task = list.find((item) => item.id === "tsk_001")
+    expect(task?.priority).toBeNull()
+    expect(task?.assigneeId).toBeNull()
+  })
+
   it("creates a task assigned to the creator", async () => {
     const { accessToken } = await login("member@example.com", "memberpass")
     const res = await api("/api/tasks", {

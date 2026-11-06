@@ -8,12 +8,7 @@ import {
   useUpdate,
   type HttpError,
 } from "@refinedev/core"
-import {
-  taskPrioritySchema,
-  taskStatusSchema,
-  type TaskPriority,
-  type TaskStatus,
-} from "@workspace/api/collections"
+import { taskPrioritySchema, taskStatusSchema } from "@workspace/api/collections"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -30,28 +25,16 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { describeError } from "@/lib/http-error"
-
-/** The shape of a task the write path needs; rows from the table satisfy it. */
-export type TaskWriteData = {
-  id: string
-  title: string
-  description: string | null
-  status: TaskStatus
-  priority: TaskPriority | null
-  assigneeId: string | null
-  dueDate: string | null
-}
-
-type TaskPayload = {
-  title: string
-  description: string | null
-  status: TaskStatus
-  priority: TaskPriority | null
-  assigneeId: string | null
-  dueDate: string | null
-}
-
-type UserOption = { id: string; name: string }
+import {
+  PRIORITY_OPTIONS,
+  STATUS_OPTIONS,
+  type TaskInput,
+  type TaskPriority,
+  type TaskRecord,
+  type TaskRow,
+  type TaskStatus,
+  type UserOption,
+} from "@/lib/tasks"
 
 type TaskFormValues = {
   title: string
@@ -62,10 +45,7 @@ type TaskFormValues = {
   dueDate: string
 }
 
-const STATUS_OPTIONS: TaskStatus[] = ["todo", "in-progress", "done", "blocked"]
-const PRIORITY_OPTIONS: TaskPriority[] = ["low", "medium", "high"]
-
-function toFormValues(task: TaskWriteData | null): TaskFormValues {
+function toFormValues(task: TaskRow | null): TaskFormValues {
   if (!task) {
     return {
       title: "",
@@ -86,7 +66,7 @@ function toFormValues(task: TaskWriteData | null): TaskFormValues {
   }
 }
 
-function toPayload(values: TaskFormValues): TaskPayload {
+function toPayload(values: TaskFormValues): TaskInput {
   return {
     title: values.title.trim(),
     description: values.description.trim() === "" ? null : values.description,
@@ -104,7 +84,7 @@ export function TaskFormDialog({
   onClose,
 }: {
   open: boolean
-  task: TaskWriteData | null
+  task: TaskRow | null
   users: UserOption[]
   onClose: () => void
 }) {
@@ -130,10 +110,10 @@ export function TaskFormDialog({
     defaultValues: toFormValues(task),
   })
 
-  const createMutation = useCreate<TaskWriteData, HttpError, TaskPayload>({
+  const createMutation = useCreate<TaskRecord, HttpError, TaskInput>({
     resource: "tasks",
   })
-  const updateMutation = useUpdate<TaskWriteData, HttpError, TaskPayload>({
+  const updateMutation = useUpdate<TaskRecord, HttpError, TaskInput>({
     resource: "tasks",
   })
 
@@ -199,7 +179,9 @@ export function TaskFormDialog({
           name="title"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={`${id}-title`}>{t("taskDialog.title")}</FieldLabel>
+              <FieldLabel htmlFor={`${id}-title`}>
+                {t("taskDialog.title")}
+              </FieldLabel>
               <Input
                 {...field}
                 id={`${id}-title`}
@@ -314,7 +296,9 @@ export function TaskFormDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("taskDialog.unassigned")}</SelectItem>
+                    <SelectItem value="">
+                      {t("taskDialog.unassigned")}
+                    </SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
@@ -366,11 +350,11 @@ export function DeleteTaskDialog({
   onClose,
 }: {
   open: boolean
-  task: TaskWriteData | null
+  task: TaskRow | null
   onClose: () => void
 }) {
   const { t } = useTranslation()
-  const deleteMutation = useDelete<TaskWriteData>({})
+  const deleteMutation = useDelete<TaskRecord>({})
 
   function onConfirm() {
     if (!task) return

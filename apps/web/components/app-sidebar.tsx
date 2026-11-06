@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useLogout } from "@refinedev/core"
-import type { DashboardUser } from "@/lib/session"
 import {
   ChevronRightIcon,
   ClipboardListIcon,
@@ -14,7 +13,6 @@ import {
   SettingsIcon,
   UsersIcon,
 } from "lucide-react"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import {
   Collapsible,
   CollapsibleContent,
@@ -23,7 +21,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -41,7 +38,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@workspace/ui/components/sidebar"
+
+interface AppSidebarUser {
+  name: string
+  email: string
+  role: "admin" | "member"
+}
 
 /**
  * The dashboard navigation. Two collapsible sections — "Manage" (Tasks, Users)
@@ -85,17 +89,11 @@ const NAV_SECTIONS = [
 export function AppSidebar({
   user,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { user: DashboardUser }) {
+}: React.ComponentProps<typeof Sidebar> & { user: AppSidebarUser }) {
   const { t } = useTranslation()
   const pathname = usePathname()
+  const { state } = useSidebar()
   const { mutate: logout, isPending } = useLogout()
-  const initials = user.name
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part.charAt(0))
-    .slice(0, 2)
-    .join("")
-    .toUpperCase()
 
   const handleLogout = () => {
     logout(undefined, {
@@ -110,10 +108,7 @@ export function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              render={<Link href="/dashboard/tasks" />}
-            >
+            <SidebarMenuButton render={<Link href="/dashboard/tasks" />}>
               <LayoutDashboardIcon />
               <span className="truncate">{t("shell.title")}</span>
             </SidebarMenuButton>
@@ -129,7 +124,9 @@ export function AppSidebar({
           >
             <SidebarGroup>
               <SidebarGroupLabel
-                render={<CollapsibleTrigger />}
+                render={
+                  state === "collapsed" ? undefined : <CollapsibleTrigger />
+                }
                 className="group/label text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
                 {t(section.labelKey)}{" "}
@@ -161,29 +158,19 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<SidebarMenuButton size="lg" tooltip={user.name} />}
-              >
-                <Avatar>
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+              <DropdownMenuTrigger render={<SidebarMenuButton size="lg" />}>
+                <UsersIcon />
+                <div className="grid flex-1 text-left leading-tight">
                   <span className="truncate text-sm">{user.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {t(
-                      user.role === "admin"
-                        ? "users.role.admin"
-                        : "users.role.member"
-                    )}
+                    {user.role}
                   </span>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="truncate">
-                    {user.email}
-                  </DropdownMenuLabel>
-                </DropdownMenuGroup>
+                <DropdownMenuLabel className="truncate">
+                  {user.email}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled={isPending} onClick={handleLogout}>
                   <LogOutIcon />
@@ -194,7 +181,7 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail label={t("shell.toggleSidebar")} />
+      <SidebarRail />
     </Sidebar>
   )
 }

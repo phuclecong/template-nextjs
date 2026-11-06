@@ -26,10 +26,10 @@ a static export.
 
 ## Environment variables
 
-| Variable          | Required | Purpose                                                        |
-| ----------------- | -------- | -------------------------------------------------------------- |
-| `SESSION_SECRET`  | yes (prod) | Signing key for the httpOnly session cookie (JWT HS256).    |
-| `API_URL`         | optional | Real backend origin. When set, `/api/*` is proxied server-side and the in-browser mock is disabled. When unset, the app runs against the in-browser MSW mock. |
+| Variable         | Required   | Purpose                                                                                                                                                       |
+| ---------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SESSION_SECRET` | yes (prod) | Signing key for the httpOnly session cookie (JWT HS256).                                                                                                      |
+| `API_URL`        | optional   | Real backend origin. When set, `/api/*` is proxied server-side and the in-browser mock is disabled. When unset, the app runs against the in-browser MSW mock. |
 
 `SESSION_SECRET` must be a long, random value (e.g.
 `openssl rand -base64 32`). `lib/session.ts` refuses to run in production with

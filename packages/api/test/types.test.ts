@@ -18,4 +18,14 @@ describe("generated client types", () => {
     expectTypeOf<Task>().toHaveProperty("status")
     expectTypeOf<Task>().toHaveProperty("assigneeId")
   })
+
+  it("matches the contract for bulk task updates", () => {
+    type BulkRequest = components["schemas"]["TaskBulkUpdateRequest"]
+    type BulkResponse = components["schemas"]["TaskBulkUpdateResponse"]
+
+    expectTypeOf<BulkRequest>().toHaveProperty("ids")
+    expectTypeOf<BulkRequest>().toHaveProperty("status")
+    expectTypeOf<BulkResponse>().toHaveProperty("updated")
+    expectTypeOf<BulkResponse>().toHaveProperty("failed")
+  })
 })

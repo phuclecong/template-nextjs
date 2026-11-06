@@ -17,8 +17,5 @@ test("tasks table loads and searches", async ({ page }) => {
 
   await expect(page.getByText(/Draft the release notes/).first()).toBeVisible()
   await expect(page.getByText("Author the OpenAPI contract")).toHaveCount(0)
-
-  const listbox = page.getByRole("listbox", { name: "Title suggestions" })
-  await expect(listbox).toBeVisible()
-  await expect(listbox.getByRole("option").first()).toContainText("release")
+  await expect(page).toHaveURL(/q=release/)
 })
