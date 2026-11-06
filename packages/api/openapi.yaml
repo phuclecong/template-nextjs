@@ -210,22 +210,31 @@ paths:
           in: query
           schema:
             type: integer
+          description: Number of matching tasks to skip before returning results. Defaults to 0.
         - name: _end
           in: query
           schema:
             type: integer
+          description: "Exclusive upper bound on the result slice. When omitted, all matching tasks after `_start` are returned."
         - name: _sort
           in: query
           schema:
             type: string
+          description: "Field to sort by: `title`, `status`, `priority`, or `dueDate`. Defaults to `title`."
         - name: _order
           in: query
           schema:
             type: string
             enum: [asc, desc]
+          description: "Sort direction. Defaults to `asc`."
       responses:
         "200":
           description: List of tasks.
+          headers:
+            x-total-count:
+              description: Total number of tasks matching the filters before pagination.
+              schema:
+                type: integer
           content:
             application/json:
               schema:

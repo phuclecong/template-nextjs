@@ -539,9 +539,13 @@ export interface operations {
                 dueDate_gte?: string;
                 /** @description Inclusive upper bound on the due date. */
                 dueDate_lte?: string;
+                /** @description Number of matching tasks to skip before returning results. Defaults to 0. */
                 _start?: number;
+                /** @description Exclusive upper bound on the result slice. When omitted, all matching tasks after `_start` are returned. */
                 _end?: number;
+                /** @description Field to sort by: `title`, `status`, `priority`, or `dueDate`. Defaults to `title`. */
                 _sort?: string;
+                /** @description Sort direction. Defaults to `asc`. */
                 _order?: "asc" | "desc";
             };
             header?: never;
@@ -553,6 +557,8 @@ export interface operations {
             /** @description List of tasks. */
             200: {
                 headers: {
+                    /** @description Total number of tasks matching the filters before pagination. */
+                    "x-total-count"?: number;
                     [name: string]: unknown;
                 };
                 content: {
