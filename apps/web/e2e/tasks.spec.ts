@@ -7,7 +7,7 @@ test("tasks table loads and searches", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in" }).click()
   await expect(page).toHaveURL(/\/dashboard/)
 
-  await page.getByRole("link", { name: "Tasks" }).click()
+  await page.locator('[data-sidebar="menu-button"]', { hasText: "Tasks" }).click()
   await expect(page).toHaveURL(/\/dashboard\/tasks/)
 
   await expect(page.getByRole("table")).toBeVisible()

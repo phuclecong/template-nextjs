@@ -6,16 +6,16 @@ dashboard, and they never import from `apps/web`.
 
 ## Primitives
 
-| Primitive                                                                                                 | Import                             | Built on                          |
-| --------------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------- |
-| Button                                                                                                    | `@workspace/ui/components/button`  | Base UI `Button`                  |
-| Dialog                                                                                                    | `@workspace/ui/components/dialog`  | Base UI `Dialog`                  |
-| Input                                                                                                     | `@workspace/ui/components/input`   | Base UI `Input`                   |
-| Textarea                                                                                                  | `@workspace/ui/components/textarea` | native `<textarea>`               |
-| Select                                                                                                    | `@workspace/ui/components/select`  | Base UI `Select`                  |
-| Table (+ `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableFooter`, `TableCaption`) | `@workspace/ui/components/table`   | native table elements             |
-| Field (`FieldLabel`, `FieldDescription`, `FieldError`, …)                                                 | `@workspace/ui/components/field`   | native `<div>` / `<label>` / `<p>` |
-| Toast (`Toaster`, `toast`)                                                                                | `@workspace/ui/components/sonner`  | sonner                            |
+| Primitive                                                                                                 | Import                              | Built on                           |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------- | ---------------------------------- |
+| Button                                                                                                    | `@workspace/ui/components/button`   | Base UI `Button`                   |
+| Dialog                                                                                                    | `@workspace/ui/components/dialog`   | Base UI `Dialog`                   |
+| Input                                                                                                     | `@workspace/ui/components/input`    | Base UI `Input`                    |
+| Textarea                                                                                                  | `@workspace/ui/components/textarea` | native `<textarea>`                |
+| Select                                                                                                    | `@workspace/ui/components/select`   | Base UI `Select`                   |
+| Table (+ `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`, `TableFooter`, `TableCaption`) | `@workspace/ui/components/table`    | native table elements              |
+| Field (`FieldLabel`, `FieldDescription`, `FieldError`, …)                                                 | `@workspace/ui/components/field`    | native `<div>` / `<label>` / `<p>` |
+| Toast (`Toaster`, `toast`)                                                                                | `@workspace/ui/components/sonner`   | sonner                             |
 
 Every primitive forwards native props, so it drops into plain `<form>`/table
 usage without an adapter. Shared tokens live in `src/lib`:

@@ -9,7 +9,7 @@ async function login(page: Page, email: string, password: string) {
 }
 
 async function openTasks(page: Page) {
-  await page.getByRole("link", { name: "Tasks" }).click()
+  await page.locator('[data-sidebar="menu-button"]', { hasText: "Tasks" }).click()
   await expect(page).toHaveURL(/\/dashboard\/tasks/)
   await expect(page.getByRole("table")).toBeVisible()
 }

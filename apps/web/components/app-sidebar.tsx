@@ -21,6 +21,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -168,9 +169,11 @@ export function AppSidebar({
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start">
-                <DropdownMenuLabel className="truncate">
-                  {user.email}
-                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="truncate">
+                    {user.email}
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled={isPending} onClick={handleLogout}>
                   <LogOutIcon />
