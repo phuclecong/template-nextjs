@@ -76,7 +76,7 @@ export function DashboardShell({
           description={t("shell.sidebarDescription")}
         />
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
+          <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b border-muted/90 bg-background px-4">
             <SidebarTrigger
               className="-ml-1"
               label={t("shell.toggleSidebar")}
