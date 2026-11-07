@@ -3,7 +3,7 @@ import type { NextConfig } from "next"
 const apiUrl = process.env.API_URL
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@workspace/ui", "@workspace/api"],
+  transpilePackages: ["@workspace/ui", "@workspace/api", "@workspace/shared-lib"],
   // The dashboard index has no content of its own — land on Tasks. Done here
   // (not in a page component) so it is a real HTTP redirect before render,
   // rather than a client-side meta-tag redirect that races with reloads.

@@ -76,6 +76,9 @@ export const vi: Translation = {
       updatePriority: "Cập nhật mức ưu tiên",
       assign: "Giao việc",
       none: "Không",
+      dueDate: "Hạn chót",
+      clearDueDate: "Xóa hạn chót",
+      setDueDate: "Đặt hạn chót",
       updated: "Đã cập nhật {{count}} công việc",
       updatedWithFailures:
         "Đã cập nhật {{updated}} công việc, {{failed}} thất bại",
@@ -128,7 +131,16 @@ export const vi: Translation = {
   },
   users: {
     title: "Người dùng",
+    searchLabel: "Tìm người dùng",
+    searchPlaceholder: "Tìm người dùng…",
     loading: "Đang tải người dùng…",
+    empty: "Chưa có người dùng nào.",
+    emptyNoMatch: "Không có người dùng nào khớp với tìm kiếm hoặc bộ lọc.",
+    filters: {
+      role: "Vai trò",
+      all: "Tất cả",
+      clear: "Xóa bộ lọc",
+    },
     columns: {
       name: "Tên",
       email: "Email",

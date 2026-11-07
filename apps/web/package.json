@@ -22,6 +22,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.26",
     "@workspace/api": "workspace:*",
+    "@workspace/shared-lib": "workspace:*",
     "@workspace/ui": "workspace:*",
     "axios": "^1.21.0",
     "i18next": "^26.7.1",

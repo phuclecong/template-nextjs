@@ -14,6 +14,7 @@ type BulkPatch = {
   status?: TaskStatus
   priority?: TaskPriority | null
   assigneeId?: string | null
+  dueDate?: string | null
 }
 
 type BulkUpdateRequest = { ids: string[] } & BulkPatch
