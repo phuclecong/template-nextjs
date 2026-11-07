@@ -77,6 +77,9 @@ export const en = {
       updatePriority: "Update priority",
       assign: "Assign",
       none: "None",
+      dueDate: "Due date",
+      clearDueDate: "Clear due date",
+      setDueDate: "Set due date",
       updated: "Updated {{count}} tasks",
       updatedWithFailures: "Updated {{updated}} tasks, {{failed}} failed",
       failed: "Bulk update failed",
@@ -128,7 +131,16 @@ export const en = {
   },
   users: {
     title: "Users",
+    searchLabel: "Search users",
+    searchPlaceholder: "Search users…",
     loading: "Loading users…",
+    empty: "No users yet.",
+    emptyNoMatch: "No users match your search or filters.",
+    filters: {
+      role: "Role",
+      all: "All",
+      clear: "Clear filters",
+    },
     columns: {
       name: "Name",
       email: "Email",

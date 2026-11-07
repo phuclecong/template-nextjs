@@ -100,6 +100,71 @@ function compareTaskValues(
   return String(av).localeCompare(String(bv))
 }
 
+const sortableUserFields = ["name", "email", "role", "createdAt"] as const
+type SortableUserField = (typeof sortableUserFields)[number]
+
+function isSortableUserField(value: string | null): value is SortableUserField {
+  return (
+    value !== null && (sortableUserFields as readonly string[]).includes(value)
+  )
+}
+
+function compareUserValues(
+  a: UserEntity,
+  b: UserEntity,
+  field: SortableUserField
+): number {
+  const av = a[field]
+  const bv = b[field]
+  if (av == null && bv == null) return 0
+  if (av == null) return 1
+  if (bv == null) return -1
+  return String(av).localeCompare(String(bv))
+}
+
+/** Lists users with simple-rest compatible `_start`/`_end`/`_sort`/`_order`/`q`/`role`. */
+function listUsers(request: Request): Response {
+  if (!getAuthUser(request)) {
+    return fail("unauthorized", "Authentication required.", 401)
+  }
+
+  const url = new URL(request.url)
+  const q = url.searchParams.get("q")?.trim().toLowerCase()
+  const role = url.searchParams.get("role")
+  const start = Number(url.searchParams.get("_start") ?? 0)
+  const endParam = url.searchParams.get("_end")
+  const end = endParam ? Number(endParam) : undefined
+  const sortParam = url.searchParams.get("_sort")
+  const descending = url.searchParams.get("_order") === "desc"
+  const sortField: SortableUserField = isSortableUserField(sortParam)
+    ? sortParam
+    : "name"
+
+  let items = users.all().slice()
+  if (q) {
+    items = items.filter(
+      (user) =>
+        user.name.toLowerCase().includes(q) ||
+        user.email.toLowerCase().includes(q)
+    )
+  }
+  if (role && isRole(role)) {
+    items = items.filter((user) => user.role === role)
+  }
+
+  items.sort((a, b) => {
+    const result = compareUserValues(a, b, sortField)
+    return descending ? -result : result
+  })
+
+  const total = items.length
+  const page = end === undefined ? items : items.slice(start, end)
+  return HttpResponse.json(page.map(toPublicUser) as JsonBodyType, {
+    status: 200,
+    headers: { "x-total-count": String(total) },
+  })
+}
+
 /** Lists tasks with simple-rest compatible `_start`/`_end`/`_sort`/`_order`/`q`. */
 function listTasks(request: Request): Response {
   if (!getAuthUser(request)) {
@@ -182,11 +247,13 @@ async function bulkUpdateTasks(request: Request): Promise<Response> {
   const hasPriority = isPriority(body.priority) || body.priority === null
   const hasAssigneeId =
     typeof body.assigneeId === "string" || body.assigneeId === null
+  const hasDueDate =
+    typeof body.dueDate === "string" || body.dueDate === null
 
-  if (!hasStatus && !hasPriority && !hasAssigneeId) {
+  if (!hasStatus && !hasPriority && !hasAssigneeId && !hasDueDate) {
     return fail(
       "invalid_request",
-      "At least one of status, priority, or assigneeId is required.",
+      "At least one of status, priority, assigneeId, or dueDate is required.",
       400
     )
   }
@@ -210,6 +277,7 @@ async function bulkUpdateTasks(request: Request): Promise<Response> {
         if (hasStatus) draft.status = body.status as TaskStatus
         if (hasPriority) draft.priority = body.priority as TaskPriority | null
         if (hasAssigneeId) draft.assigneeId = body.assigneeId as string | null
+        if (hasDueDate) draft.dueDate = body.dueDate as string | null
         draft.updatedAt = new Date().toISOString()
       },
       strict: true,
@@ -245,12 +313,7 @@ export const dataHandlers = [
   }),
 
   // ---- users ----
-  http.get("*/api/users", ({ request }) => {
-    if (!getAuthUser(request)) {
-      return fail("unauthorized", "Authentication required.", 401)
-    }
-    return ok(users.all().map(toPublicUser))
-  }),
+  http.get("*/api/users", ({ request }) => listUsers(request)),
 
   http.patch("*/api/users/:id/role", async ({ request, params }) => {
     const actor = getAuthUser(request)

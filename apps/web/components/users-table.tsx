@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   useCustomMutation,
@@ -10,7 +10,10 @@ import {
   useList,
   type HttpError,
 } from "@refinedev/core"
+import type { ColumnDef } from "@tanstack/react-table"
 import type { Role } from "@workspace/api/collections"
+import { DataTable } from "@workspace/shared-lib/components"
+import { useTableState } from "@workspace/shared-lib/hooks"
 import { Button } from "@workspace/ui/components/button"
 import { Dialog } from "@workspace/ui/components/dialog"
 import {
@@ -20,15 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
+import { UsersFilterBar } from "@/components/users-filter-bar"
 import { describeError } from "@/lib/http-error"
+import { ROLE_OPTIONS, toUserCrudFilters } from "@/lib/users"
 
 type UserApi = {
   id: string
@@ -40,7 +37,7 @@ type UserApi = {
 
 type CurrentUser = Omit<UserApi, "createdAt">
 
-const ROLE_OPTIONS: Role[] = ["admin", "member"]
+const FILTER_KEYS = ["role"] as const
 
 export function UsersView() {
   const { t } = useTranslation()
@@ -59,11 +56,38 @@ export function UsersView() {
 
 function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const { t } = useTranslation()
+
+  const {
+    q,
+    searchValue,
+    onSearchChange,
+    filterValues,
+    sorters,
+    sorting,
+    onSortingChange,
+    page,
+    pageSize,
+    rowSelection,
+    setRowSelection,
+    updateParams,
+  } = useTableState({ defaultSortField: "name", filterKeys: FILTER_KEYS })
+
+  const role = filterValues.role
+  const hasActiveFilters = Boolean(q || role)
+  const filters = useMemo(
+    () => toUserCrudFilters(q, filterValues),
+    [q, filterValues]
+  )
+
   const usersQuery = useList<UserApi>({
     resource: "users",
-    pagination: { pageSize: 100 },
+    pagination: { currentPage: page, pageSize },
+    sorters,
+    filters,
   })
   const users = usersQuery.result.data ?? []
+  const total = usersQuery.result.total ?? 0
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   const invalidate = useInvalidate()
   const roleMutation = useCustomMutation<UserApi, HttpError, { role: Role }>({})
@@ -73,32 +97,38 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
 
   const isAdmin = currentUser.role === "admin"
 
-  function changeRole(user: UserApi, role: Role) {
-    if (role === user.role) return
-    roleMutation.mutate(
-      {
-        url: `/api/users/${user.id}/role`,
-        method: "patch",
-        values: { role },
-        successNotification: {
-          message: t("users.roleUpdated"),
-          type: "success",
+  const changeRole = useCallback(
+    (user: UserApi, role: Role) => {
+      if (role === user.role) return
+      roleMutation.mutate(
+        {
+          url: `/api/users/${user.id}/role`,
+          method: "patch",
+          values: { role },
+          successNotification: {
+            message: t("users.roleUpdated"),
+            type: "success",
+          },
+          errorNotification: (error) => ({
+            message: t("users.failedRoleUpdate"),
+            type: "error",
+            description: describeError(error),
+          }),
         },
-        errorNotification: (error) => ({
-          message: t("users.failedRoleUpdate"),
-          type: "error",
-          description: describeError(error),
-        }),
-      },
-      {
-        onSuccess: () => {
-          void invalidate({ resource: "users", invalidates: ["list"] })
-        },
-      }
-    )
-  }
+        {
+          onSuccess: () => {
+            void invalidate({ resource: "users", invalidates: ["list"] })
+          },
+        }
+      )
+    },
+    [roleMutation, invalidate, t]
+  )
 
-  function confirmDelete() {
+  const openDelete = useCallback((user: UserApi) => setDeleteTarget(user), [])
+  const closeDelete = useCallback(() => setDeleteTarget(null), [])
+
+  const confirmDelete = useCallback(() => {
     if (!deleteTarget) return
     deleteMutation.mutate(
       {
@@ -113,88 +143,109 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
       },
       { onSuccess: () => setDeleteTarget(null) }
     )
-  }
+  }, [deleteTarget, deleteMutation, t])
+
+  const columns = useMemo<ColumnDef<UserApi>[]>(() => {
+    const cols: ColumnDef<UserApi>[] = [
+      { accessorKey: "name", header: t("users.columns.name"), size: 220 },
+      { accessorKey: "email", header: t("users.columns.email"), size: 300 },
+      {
+        accessorKey: "role",
+        header: t("users.columns.role"),
+        size: 160,
+        cell: ({ row }) =>
+          isAdmin ? (
+            <Select
+              value={row.original.role}
+              onValueChange={(value) => changeRole(row.original, value as Role)}
+            >
+              <SelectTrigger
+                aria-label={t("users.roleLabel", { name: row.original.name })}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_OPTIONS.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {t(`users.role.${role}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            t(`users.role.${row.original.role}`)
+          ),
+      },
+    ]
+
+    if (isAdmin) {
+      cols.push({
+        id: "actions",
+        header: t("users.columns.actions"),
+        size: 100,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={() => openDelete(row.original)}
+          >
+            {t("users.delete")}
+          </Button>
+        ),
+      })
+    }
+
+    return cols
+  }, [isAdmin, changeRole, openDelete, t])
 
   return (
     <div className="flex flex-col gap-4 p-6 text-sm">
-      <h1 className="text-lg font-medium">{t("users.title")}</h1>
+      {/* <h1 className="text-lg font-medium">{t("users.title")}</h1> */}
 
-      {usersQuery.query.isLoading ? (
-        <p className="text-muted-foreground">{t("users.loading")}</p>
-      ) : (
-        <div className="overflow-auto border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("users.columns.name")}</TableHead>
-                <TableHead>{t("users.columns.email")}</TableHead>
-                <TableHead>{t("users.columns.role")}</TableHead>
-                {isAdmin ? (
-                  <TableHead>{t("users.columns.actions")}</TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    {isAdmin ? (
-                      <Select
-                        value={user.role}
-                        onValueChange={(value) => changeRole(user, value as Role)}
-                      >
-                        <SelectTrigger
-                          aria-label={t("users.roleLabel", { name: user.name })}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLE_OPTIONS.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {t(`users.role.${role}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      t(`users.role.${user.role}`)
-                    )}
-                  </TableCell>
-                  {isAdmin ? (
-                    <TableCell>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        onClick={() => setDeleteTarget(user)}
-                      >
-                        {t("users.delete")}
-                      </Button>
-                    </TableCell>
-                  ) : null}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <UsersFilterBar
+        searchValue={searchValue}
+        onSearchChange={onSearchChange}
+        role={role}
+        onRoleChange={(value) => updateParams({ role: value, page: "" })}
+        onClear={() => updateParams({ role: "", page: "" })}
+      />
+
+      <DataTable
+        data={users}
+        columns={columns}
+        getRowId={(row) => row.id}
+        sorting={sorting}
+        onSortingChange={onSortingChange}
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+        enableRowSelection={() => false}
+        isLoading={usersQuery.query.isLoading}
+        loadingLabel={t("users.loading")}
+        emptyLabel={
+          hasActiveFilters ? t("users.emptyNoMatch") : t("users.empty")
+        }
+        pagination={{
+          page,
+          pageSize,
+          pageCount,
+          onPageChange: (next) => updateParams({ page: String(next) }),
+          onPageSizeChange: (next) =>
+            updateParams({ pageSize: String(next), page: "" }),
+        }}
+      />
 
       <Dialog
         open={deleteTarget !== null}
         title={t("users.deleteTitle")}
-        onClose={() => setDeleteTarget(null)}
+        onClose={closeDelete}
       >
         <p className="text-sm text-muted-foreground">
           {t("users.deleteBody", { name: deleteTarget?.name ?? "" })}
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setDeleteTarget(null)}
-          >
+          <Button type="button" variant="outline" onClick={closeDelete}>
             {t("common.cancel")}
           </Button>
           <Button

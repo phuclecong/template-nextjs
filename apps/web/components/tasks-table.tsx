@@ -6,13 +6,11 @@ import { useGetIdentity } from "@refinedev/core"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { DataTable } from "@/components/data-table"
-import {
-  TaskBulkActions,
-  TaskFiltersBar,
-} from "@/components/tasks-table-toolbar"
+import { DataTable } from "@workspace/shared-lib/components"
+import { useTableState } from "@workspace/shared-lib/hooks"
+import { TaskBulkActions } from "@/components/task-bulk-actions"
+import { TaskFiltersBar } from "@/components/task-filters-bar"
 import { DeleteTaskDialog, TaskFormDialog } from "@/components/task-dialogs"
-import { useTableState } from "@/hooks/use-table-state"
 import { useTaskBulkActions } from "@/hooks/use-task-bulk-actions"
 import { useTasks } from "@/hooks/use-tasks"
 import { toCrudFilters, type Role, type TaskRow } from "@/lib/tasks"

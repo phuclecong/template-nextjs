@@ -12,7 +12,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { OnChangeFn, SortingState } from "@tanstack/react-table"
 import type { CrudSort } from "@refinedev/core"
-import { debounce } from "@/lib/debounce"
+import { debounce } from "../libs"
 
 const DEFAULT_PAGE_SIZE = 30
 const SEARCH_DEBOUNCE_MS = 300

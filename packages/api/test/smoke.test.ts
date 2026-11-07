@@ -370,6 +370,40 @@ describe("tasks", () => {
     expect(task?.assigneeId).toBeNull()
   })
 
+  it("sets and clears dueDate in a bulk update", async () => {
+    const { accessToken } = await login("admin@example.com", "adminpass")
+
+    const set = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      token: accessToken,
+      body: { ids: ["tsk_001"], dueDate: "2026-06-01" },
+    })
+    expect(set.status).toBe(200)
+
+    const afterSet = await api("/api/tasks?q=author", { token: accessToken })
+    const setList = (await afterSet.json()) as Array<{
+      id: string
+      dueDate: string | null
+    }>
+    expect(setList.find((item) => item.id === "tsk_001")?.dueDate).toBe(
+      "2026-06-01"
+    )
+
+    const clear = await api("/api/tasks/bulk", {
+      method: "PATCH",
+      token: accessToken,
+      body: { ids: ["tsk_001"], dueDate: null },
+    })
+    expect(clear.status).toBe(200)
+
+    const afterClear = await api("/api/tasks?q=author", { token: accessToken })
+    const clearList = (await afterClear.json()) as Array<{
+      id: string
+      dueDate: string | null
+    }>
+    expect(clearList.find((item) => item.id === "tsk_001")?.dueDate).toBeNull()
+  })
+
   it("creates a task assigned to the creator", async () => {
     const { accessToken } = await login("member@example.com", "memberpass")
     const res = await api("/api/tasks", {
