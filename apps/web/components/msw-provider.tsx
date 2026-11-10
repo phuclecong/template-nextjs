@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { startMockWorker } from "@/lib/msw"
+import { startMockWorker } from "@/utils/msw"
 
 /**
  * Client-only gate that boots the MSW worker before rendering children, so the

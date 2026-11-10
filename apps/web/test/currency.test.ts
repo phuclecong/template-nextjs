@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { formatCurrency } from "@/lib/currency"
+import { formatCurrency } from "@/utils/currency"
 
 describe("formatCurrency", () => {
   it("formats USD with two decimals for English", () => {

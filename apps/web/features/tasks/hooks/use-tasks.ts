@@ -8,7 +8,7 @@ import {
   type TaskRecord,
   type TaskRow,
   type UserOption,
-} from "@/lib/tasks"
+} from "@/features/tasks/utils"
 
 type CurrentUser = { id: string; role: Role }
 

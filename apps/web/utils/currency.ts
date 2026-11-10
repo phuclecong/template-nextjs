@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/i18n"
+import type { Locale } from "@/utils/i18n"
 
 /**
  * Locale-aware currency formatting (ADR-0004, GLOSSARY "Locale"). English shows

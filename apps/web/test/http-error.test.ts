@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { describeError } from "@/lib/http-error"
+import { describeError } from "@/utils/http-error"
 
 describe("describeError", () => {
   it("prefers the API message carried on the response body", () => {

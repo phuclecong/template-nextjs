@@ -2,18 +2,20 @@
 
 import { memo, useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useGetIdentity } from "@refinedev/core"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTable } from "@workspace/shared-lib/components"
 import { useTableState } from "@workspace/shared-lib/hooks"
-import { TaskBulkActions } from "@/components/task-bulk-actions"
-import { TaskFiltersBar } from "@/components/task-filters-bar"
-import { DeleteTaskDialog, TaskFormDialog } from "@/components/task-dialogs"
-import { useTaskBulkActions } from "@/hooks/use-task-bulk-actions"
-import { useTasks } from "@/hooks/use-tasks"
-import { toCrudFilters, type Role, type TaskRow } from "@/lib/tasks"
+import { TaskBulkActions } from "@/features/tasks/components/task-bulk-actions"
+import { TaskFiltersBar } from "@/features/tasks/components/task-filters-bar"
+import {
+  DeleteTaskDialog,
+  TaskFormDialog,
+} from "@/features/tasks/components/task-dialogs"
+import { useTaskBulkActions } from "@/features/tasks/hooks/use-task-bulk-actions"
+import { useTasks } from "@/features/tasks/hooks/use-tasks"
+import { toCrudFilters, type TaskRow, CurrentUser } from "@/features/tasks/utils"
 
 const FILTER_KEYS = [
   "status",
@@ -22,8 +24,6 @@ const FILTER_KEYS = [
   "dueFrom",
   "dueTo",
 ] as const
-
-type CurrentUser = { id: string; role: Role }
 
 /**
  * Memoized actions cell. `task` (the row object) and `onEdit`/`onDelete`
@@ -68,22 +68,7 @@ const TaskActionsCell = memo(function TaskActionsCell({
   )
 })
 
-export function TasksView() {
-  const { t } = useTranslation()
-  const { data: identity, isLoading } = useGetIdentity<CurrentUser>()
-
-  if (isLoading || !identity) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        {t("common.loading")}
-      </div>
-    )
-  }
-
-  return <TasksTable currentUser={identity} />
-}
-
-function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
+export function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
   const { t } = useTranslation()
 
   const {

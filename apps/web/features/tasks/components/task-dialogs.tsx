@@ -8,7 +8,10 @@ import {
   useUpdate,
   type HttpError,
 } from "@refinedev/core"
-import { taskPrioritySchema, taskStatusSchema } from "@workspace/api/collections"
+import {
+  taskPrioritySchema,
+  taskStatusSchema,
+} from "@workspace/api/collections"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -24,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { describeError } from "@/lib/http-error"
+import { describeError } from "@/utils/http-error"
 import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
@@ -34,7 +37,7 @@ import {
   type TaskRow,
   type TaskStatus,
   type UserOption,
-} from "@/lib/tasks"
+} from "@/features/tasks/utils"
 
 type TaskFormValues = {
   title: string

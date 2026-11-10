@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { toCrudFilters } from "@/lib/tasks"
+import { toCrudFilters } from "@/features/tasks/utils"
 
 const emptyFilters = {
   status: "",

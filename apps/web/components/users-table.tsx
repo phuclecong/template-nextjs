@@ -24,8 +24,8 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { UsersFilterBar } from "@/components/users-filter-bar"
-import { describeError } from "@/lib/http-error"
-import { ROLE_OPTIONS, toUserCrudFilters } from "@/lib/users"
+import { describeError } from "@/utils/http-error"
+import { ROLE_OPTIONS, toUserCrudFilters } from "@/utils/users"
 
 type UserApi = {
   id: string

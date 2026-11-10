@@ -16,7 +16,7 @@ import {
   type TaskPriority,
   type TaskStatus,
   type UserOption,
-} from "@/lib/tasks"
+} from "@/features/tasks/utils"
 
 export function TaskBulkActions({
   hasSelection,

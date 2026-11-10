@@ -1,4 +1,4 @@
-import { TasksView } from "@/components/tasks-table"
+import { TasksView } from "@/features/tasks/index"
 
 export default function TasksPage() {
   return <TasksView />

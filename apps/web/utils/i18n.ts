@@ -1,7 +1,7 @@
 import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
-import { en } from "@/lib/translations/en"
-import { vi } from "@/lib/translations/vi"
+import { en } from "@/utils/translations/en"
+import { vi } from "@/utils/translations/vi"
 
 /**
  * Client-side i18next engine (ADR-0004). Locale is resolved without a URL

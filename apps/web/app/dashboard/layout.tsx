@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { SIDEBAR_COOKIE_NAME } from "@workspace/ui/lib/constants"
 
-import { getSession } from "@/lib/session"
+import { getSession } from "@/utils/session"
 import { DashboardShell } from "@/components/dashboard-shell"
 
 /**

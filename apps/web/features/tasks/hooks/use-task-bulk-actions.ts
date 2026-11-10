@@ -7,8 +7,8 @@ import {
   useInvalidate,
   type HttpError,
 } from "@refinedev/core"
-import type { TaskPriority, TaskStatus } from "@/lib/tasks"
-import { describeError } from "@/lib/http-error"
+import type { TaskPriority, TaskStatus } from "@/features/tasks/utils"
+import { describeError } from "@/utils/http-error"
 
 type BulkPatch = {
   status?: TaskStatus

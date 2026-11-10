@@ -13,7 +13,7 @@ import { auditLogProvider } from "@/providers/audit-log-provider"
 import { dataProvider } from "@/providers/data-provider"
 import { i18nProvider } from "@/providers/i18n-provider"
 import { notificationProvider } from "@/providers/notification-provider"
-import { applyPersistedLocale } from "@/lib/i18n"
+import { applyPersistedLocale } from "@/utils/i18n"
 
 // Client-only gate that boots the MSW worker before children render, so the
 // first data fetch is already intercepted (and `msw/browser` stays out of the

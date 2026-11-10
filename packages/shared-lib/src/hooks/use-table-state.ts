@@ -12,7 +12,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { OnChangeFn, SortingState } from "@tanstack/react-table"
 import type { CrudSort } from "@refinedev/core"
-import { debounce } from "../libs"
+import { debounce } from "../utils"
 
 const DEFAULT_PAGE_SIZE = 30
 const SEARCH_DEBOUNCE_MS = 300
@@ -56,9 +56,15 @@ export function useTableState<const TFilterKey extends string = string>(
     filterKeys = [],
   } = options
 
-  const searchParams = useSearchParams()
+  const rawSearchParams = useSearchParams()
+  // `useSearchParams()` is `null` during SSR; normalize once so downstream
+  // `useMemo`s (and the URL writer) see a stable, non-null object.
+  const searchParams = useMemo(
+    () => rawSearchParams ?? new URLSearchParams(),
+    [rawSearchParams]
+  )
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = usePathname() ?? ""
 
   // The URL is the single source of truth for search, filters, sort, and page.
   const q = searchParams.get("q") ?? ""
