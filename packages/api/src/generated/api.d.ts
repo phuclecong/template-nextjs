@@ -264,6 +264,7 @@ export interface components {
             status?: components["schemas"]["Status"];
             /** @enum {string|null} */
             priority?: "low" | "medium" | "high" | null;
+            /** @description Defaults to the caller when omitted; `null` creates an unassigned task. */
             assigneeId?: string | null;
             /** Format: date */
             dueDate?: string | null;
@@ -278,13 +279,15 @@ export interface components {
             /** Format: date */
             dueDate?: string | null;
         };
-        /** @description At least one of status, priority, or assigneeId must be present. */
+        /** @description At least one of status, priority, assigneeId, or dueDate must be present. */
         TaskBulkUpdateRequest: {
             ids: string[];
             status?: components["schemas"]["Status"];
             /** @enum {string|null} */
             priority?: "low" | "medium" | "high" | null;
             assigneeId?: string | null;
+            /** Format: date */
+            dueDate?: string | null;
         };
         TaskBulkUpdateResponse: {
             updated: number;
@@ -454,7 +457,19 @@ export interface operations {
     };
     listUsers: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Case-insensitive substring match on the user's name or email. */
+                q?: string;
+                role?: components["schemas"]["Role"];
+                /** @description Number of matching users to skip before returning results. Defaults to 0. */
+                _start?: number;
+                /** @description Exclusive upper bound on the result slice. When omitted, all matching users after `_start` are returned. */
+                _end?: number;
+                /** @description Field to sort by: `name`, `email`, `role`, or `createdAt`. Defaults to `name`. */
+                _sort?: string;
+                /** @description Sort direction. Defaults to `asc`. */
+                _order?: "asc" | "desc";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -464,6 +479,8 @@ export interface operations {
             /** @description List of users. */
             200: {
                 headers: {
+                    /** @description Total number of users matching the filters before pagination. */
+                    "x-total-count"?: number;
                     [name: string]: unknown;
                 };
                 content: {
