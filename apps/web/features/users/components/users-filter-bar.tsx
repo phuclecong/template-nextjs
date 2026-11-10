@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { ROLE_OPTIONS } from "@/lib/users"
+import { ROLE_OPTIONS } from "@/features/users/utils"
 
 export function UsersFilterBar({
   searchValue,
@@ -36,10 +36,7 @@ export function UsersFilterBar({
         placeholder={t("users.searchPlaceholder")}
         className="w-72"
       />
-      <Select
-        value={role}
-        onValueChange={(value) => onRoleChange(value ?? "")}
-      >
+      <Select value={role} onValueChange={(value) => onRoleChange(value ?? "")}>
         <SelectTrigger aria-label={t("users.filters.role")}>
           <SelectValue placeholder={t("users.filters.role")} />
         </SelectTrigger>

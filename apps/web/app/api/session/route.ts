@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getSession } from "@/lib/session"
+import { getSession } from "@/utils/session"
 
 /**
  * Read-only session bridge for Refine's authProvider (`check`/`getIdentity`).

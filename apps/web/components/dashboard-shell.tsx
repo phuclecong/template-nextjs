@@ -20,7 +20,7 @@ import {
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import type { DashboardUser } from "@/lib/session"
+import type { DashboardUser } from "@/utils/session"
 
 /**
  * Route segment → translation key, used to label breadcrumb crumbs for the
@@ -51,7 +51,7 @@ export function DashboardShell({
   const pathname = usePathname()
 
   // Everything after the leading "dashboard" segment, e.g. ["tasks"].
-  const routeSegments = pathname.split("/").filter(Boolean).slice(1)
+  const routeSegments = (pathname ?? "").split("/").filter(Boolean).slice(1)
 
   const crumbs = [
     {

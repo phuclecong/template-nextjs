@@ -4,13 +4,12 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useList, type CrudFilter, type CrudSort } from "@refinedev/core"
 import {
-  type Role,
   type TaskRecord,
   type TaskRow,
   type UserOption,
-} from "@/lib/tasks"
+} from "@/features/tasks/utils"
 
-type CurrentUser = { id: string; role: Role }
+import { CurrentUser } from "@/features/users/utils"
 
 type UseTasksArgs = {
   currentUser: CurrentUser

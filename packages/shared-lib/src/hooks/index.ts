@@ -4,3 +4,5 @@ export type {
   TableState,
   TableRowSelection,
 } from "./use-table-state"
+export { useDialog } from "./use-dialog"
+export type { DialogState } from "./use-dialog"

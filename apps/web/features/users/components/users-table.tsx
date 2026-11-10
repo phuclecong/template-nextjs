@@ -1,11 +1,10 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import {
   useCustomMutation,
   useDelete,
-  useGetIdentity,
   useInvalidate,
   useList,
   type HttpError,
@@ -13,9 +12,9 @@ import {
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Role } from "@workspace/api/collections"
 import { DataTable } from "@workspace/shared-lib/components"
-import { useTableState } from "@workspace/shared-lib/hooks"
+import { useDialog, useTableState } from "@workspace/shared-lib/hooks"
 import { Button } from "@workspace/ui/components/button"
-import { Dialog } from "@workspace/ui/components/dialog"
+import { ConfirmDialog } from "@workspace/ui/components/confirm-dialog"
 import {
   Select,
   SelectContent,
@@ -23,38 +22,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { UsersFilterBar } from "@/components/users-filter-bar"
-import { describeError } from "@/lib/http-error"
-import { ROLE_OPTIONS, toUserCrudFilters } from "@/lib/users"
-
-type UserApi = {
-  id: string
-  name: string
-  email: string
-  role: Role
-  createdAt: string
-}
-
-type CurrentUser = Omit<UserApi, "createdAt">
+import { UsersFilterBar } from "@/features/users/components/users-filter-bar"
+import {
+  CurrentUser,
+  ROLE_OPTIONS,
+  toUserCrudFilters,
+  UserRow,
+} from "@/features/users/utils"
+import { describeError } from "@/utils/http-error"
 
 const FILTER_KEYS = ["role"] as const
 
-export function UsersView() {
-  const { t } = useTranslation()
-  const { data: identity, isLoading } = useGetIdentity<CurrentUser>()
-
-  if (isLoading || !identity) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        {t("common.loading")}
-      </div>
-    )
-  }
-
-  return <UsersTable currentUser={identity} />
-}
-
-function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
+export function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const { t } = useTranslation()
 
   const {
@@ -79,7 +58,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     [q, filterValues]
   )
 
-  const usersQuery = useList<UserApi>({
+  const usersQuery = useList<UserRow>({
     resource: "users",
     pagination: { currentPage: page, pageSize },
     sorters,
@@ -90,15 +69,18 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   const invalidate = useInvalidate()
-  const roleMutation = useCustomMutation<UserApi, HttpError, { role: Role }>({})
-  const deleteMutation = useDelete<UserApi>({})
+  const roleMutation = useCustomMutation<UserRow, HttpError, { role: Role }>({})
+  const deleteMutation = useDelete<UserRow>({})
 
-  const [deleteTarget, setDeleteTarget] = useState<UserApi | null>(null)
+  const deleteDialog = useDialog<UserRow>()
+  // Bind `open` to a stable local so the `columns` memo below can depend on it
+  // (a `useCallback`) rather than on the fresh `deleteDialog` object.
+  const openDelete = deleteDialog.open
 
   const isAdmin = currentUser.role === "admin"
 
   const changeRole = useCallback(
-    (user: UserApi, role: Role) => {
+    (user: UserRow, role: Role) => {
       if (role === user.role) return
       roleMutation.mutate(
         {
@@ -125,15 +107,12 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     [roleMutation, invalidate, t]
   )
 
-  const openDelete = useCallback((user: UserApi) => setDeleteTarget(user), [])
-  const closeDelete = useCallback(() => setDeleteTarget(null), [])
-
   const confirmDelete = useCallback(() => {
-    if (!deleteTarget) return
+    if (!deleteDialog.data) return
     deleteMutation.mutate(
       {
         resource: "users",
-        id: deleteTarget.id,
+        id: deleteDialog.data.id,
         successNotification: { message: t("users.deleted"), type: "success" },
         errorNotification: (error) => ({
           message: t("users.failedDelete"),
@@ -141,12 +120,12 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
           description: describeError(error),
         }),
       },
-      { onSuccess: () => setDeleteTarget(null) }
+      { onSuccess: deleteDialog.close }
     )
-  }, [deleteTarget, deleteMutation, t])
+  }, [deleteDialog.data, deleteDialog.close, deleteMutation, t])
 
-  const columns = useMemo<ColumnDef<UserApi>[]>(() => {
-    const cols: ColumnDef<UserApi>[] = [
+  const columns = useMemo<ColumnDef<UserRow>[]>(() => {
+    const cols: ColumnDef<UserRow>[] = [
       { accessorKey: "name", header: t("users.columns.name"), size: 220 },
       { accessorKey: "email", header: t("users.columns.email"), size: 300 },
       {
@@ -198,7 +177,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     }
 
     return cols
-  }, [isAdmin, changeRole, openDelete, t])
+  }, [t, isAdmin, changeRole, openDelete])
 
   return (
     <div className="flex flex-col gap-4 p-6 text-sm">
@@ -236,28 +215,16 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
         }}
       />
 
-      <Dialog
-        open={deleteTarget !== null}
+      <ConfirmDialog
+        open={deleteDialog.isOpen}
+        onClose={deleteDialog.close}
         title={t("users.deleteTitle")}
-        onClose={closeDelete}
-      >
-        <p className="text-sm text-muted-foreground">
-          {t("users.deleteBody", { name: deleteTarget?.name ?? "" })}
-        </p>
-        <div className="mt-4 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={closeDelete}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deleteMutation.mutation.isPending}
-            onClick={confirmDelete}
-          >
-            {t("common.delete")}
-          </Button>
-        </div>
-      </Dialog>
+        description={t("users.deleteBody", { name: deleteDialog.data?.name ?? "" })}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        loading={deleteMutation.mutation.isPending}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

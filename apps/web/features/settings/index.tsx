@@ -10,8 +10,8 @@ import { z } from "zod"
 import { Button } from "@workspace/ui/components/button"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { describeError } from "@/lib/http-error"
-import { formatCurrency } from "@/lib/currency"
+import { describeError } from "@/utils/http-error"
+import { formatCurrency } from "@/utils/currency"
 
 /** A representative amount used only to demonstrate locale currency formatting. */
 const SAMPLE_AMOUNT = 1234567.89

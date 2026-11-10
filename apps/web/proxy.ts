@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getSession } from "@/lib/session"
+import { getSession } from "@/utils/session"
 
 /**
  * Server-side route gating (ADR-0003). Reads the signed session cookie to

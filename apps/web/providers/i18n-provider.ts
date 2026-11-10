@@ -1,5 +1,5 @@
 import type { I18nProvider } from "@refinedev/core"
-import i18n from "@/lib/i18n"
+import i18n from "@/utils/i18n"
 
 /**
  * Refine i18nProvider backed by the shared i18next instance (ADR-0002,

@@ -4,8 +4,8 @@ import {
   createSession,
   destroySession,
   type SessionPayload,
-} from "@/lib/session"
-import { login, register } from "@/lib/auth-client"
+} from "@/utils/session"
+import { login, register } from "@/utils/auth-client"
 import type { AuthResponseBody, PublicUser } from "@workspace/api/service"
 
 /**

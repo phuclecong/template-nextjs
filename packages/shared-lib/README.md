@@ -6,11 +6,11 @@ and must never import from `apps/web`.
 
 ## Modules
 
-| Module       | Import                            | What it is                              |
-| ------------ | --------------------------------- | --------------------------------------- |
-| `components` | `@workspace/shared-lib/components` | Server-paginated `DataTable` shell      |
-| `hooks`      | `@workspace/shared-lib/hooks`      | `useTableState` URL-driven table state  |
-| `libs`       | `@workspace/shared-lib/libs`       | Small shared utilities (`debounce`)     |
+| Module       | Import                             | What it is                             |
+| ------------ | ---------------------------------- | -------------------------------------- |
+| `components` | `@workspace/shared-lib/components` | Server-paginated `DataTable` shell     |
+| `hooks`      | `@workspace/shared-lib/hooks`      | `useTableState` URL-driven table state |
+| `libs`       | `@workspace/shared-lib/libs`       | Small shared utilities (`debounce`)    |
 
 ## The boundary rule
 

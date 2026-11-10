@@ -15,7 +15,7 @@ import {
   STATUS_OPTIONS,
   type TaskFilters,
   type UserOption,
-} from "@/lib/tasks"
+} from "@/features/tasks/utils"
 
 export function TaskFiltersBar({
   searchValue,
