@@ -1,12 +1,12 @@
 "use client"
 
-import { memo, useCallback, useMemo, useState } from "react"
+import { memo, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { DataTable } from "@workspace/shared-lib/components"
-import { useTableState } from "@workspace/shared-lib/hooks"
+import { useDialog, useTableState } from "@workspace/shared-lib/hooks"
 import { TaskBulkActions } from "@/features/tasks/components/task-bulk-actions"
 import { TaskFiltersBar } from "@/features/tasks/components/task-filters-bar"
 import {
@@ -93,10 +93,8 @@ export function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
 
   const { status, priority, assignee, dueFrom, dueTo } = filterValues
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [formTask, setFormTask] = useState<TaskRow | null>(null)
-  const [formResetKey, setFormResetKey] = useState(0)
-  const [deleteTask, setDeleteTask] = useState<TaskRow | null>(null)
+  const formDialog = useDialog<TaskRow>()
+  const deleteDialog = useDialog<TaskRow>()
 
   const filters = useMemo(
     () => toCrudFilters(q, filterValues),
@@ -120,22 +118,6 @@ export function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
     selectedIds,
     onDone: () => setRowSelection({}),
   })
-
-  const openCreate = useCallback(() => {
-    setFormTask(null)
-    setFormOpen(true)
-    setFormResetKey((n) => n + 1)
-  }, [])
-
-  const openEdit = useCallback((task: TaskRow) => {
-    setFormTask(task)
-    setFormOpen(true)
-    setFormResetKey((n) => n + 1)
-  }, [])
-
-  const closeForm = useCallback(() => setFormOpen(false), [])
-  const openDelete = useCallback((task: TaskRow) => setDeleteTask(task), [])
-  const closeDelete = useCallback(() => setDeleteTask(null), [])
 
   const columns = useMemo<ColumnDef<TaskRow>[]>(
     () => [
@@ -201,13 +183,13 @@ export function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
             task={row.original}
             editLabel={t("tasks.edit")}
             deleteLabel={t("common.delete")}
-            onEdit={openEdit}
-            onDelete={openDelete}
+            onEdit={formDialog.open}
+            onDelete={deleteDialog.open}
           />
         ),
       },
     ],
-    [openEdit, openDelete, t]
+    [formDialog.open, deleteDialog.open, t]
   )
 
   return (
@@ -235,7 +217,7 @@ export function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
         selectedCount={selectedIds.length}
         users={users}
         applyBulk={applyBulk}
-        onCreate={openCreate}
+        onCreate={formDialog.open}
       />
 
       <DataTable
@@ -263,16 +245,16 @@ export function TasksTable({ currentUser }: { currentUser: CurrentUser }) {
       />
 
       <TaskFormDialog
-        key={formResetKey}
-        open={formOpen}
-        task={formTask}
+        key={formDialog.version}
+        open={formDialog.isOpen}
+        task={formDialog.data}
         users={users}
-        onClose={closeForm}
+        onClose={formDialog.close}
       />
       <DeleteTaskDialog
-        open={deleteTask !== null}
-        task={deleteTask}
-        onClose={closeDelete}
+        open={deleteDialog.isOpen}
+        task={deleteDialog.data}
+        onClose={deleteDialog.close}
       />
     </div>
   )

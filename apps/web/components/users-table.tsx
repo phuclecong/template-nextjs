@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import {
   useCustomMutation,
@@ -13,7 +13,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Role } from "@workspace/api/collections"
 import { DataTable } from "@workspace/shared-lib/components"
-import { useTableState } from "@workspace/shared-lib/hooks"
+import { useDialog, useTableState } from "@workspace/shared-lib/hooks"
 import { Button } from "@workspace/ui/components/button"
 import { Dialog } from "@workspace/ui/components/dialog"
 import {
@@ -93,7 +93,10 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const roleMutation = useCustomMutation<UserApi, HttpError, { role: Role }>({})
   const deleteMutation = useDelete<UserApi>({})
 
-  const [deleteTarget, setDeleteTarget] = useState<UserApi | null>(null)
+  const deleteDialog = useDialog<UserApi>()
+  // Bind `open` to a stable local so the `columns` memo below can depend on it
+  // (a `useCallback`) rather than on the fresh `deleteDialog` object.
+  const openDelete = deleteDialog.open
 
   const isAdmin = currentUser.role === "admin"
 
@@ -125,15 +128,12 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     [roleMutation, invalidate, t]
   )
 
-  const openDelete = useCallback((user: UserApi) => setDeleteTarget(user), [])
-  const closeDelete = useCallback(() => setDeleteTarget(null), [])
-
   const confirmDelete = useCallback(() => {
-    if (!deleteTarget) return
+    if (!deleteDialog.data) return
     deleteMutation.mutate(
       {
         resource: "users",
-        id: deleteTarget.id,
+        id: deleteDialog.data.id,
         successNotification: { message: t("users.deleted"), type: "success" },
         errorNotification: (error) => ({
           message: t("users.failedDelete"),
@@ -141,9 +141,9 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
           description: describeError(error),
         }),
       },
-      { onSuccess: () => setDeleteTarget(null) }
+      { onSuccess: deleteDialog.close }
     )
-  }, [deleteTarget, deleteMutation, t])
+  }, [deleteDialog.data, deleteDialog.close, deleteMutation, t])
 
   const columns = useMemo<ColumnDef<UserApi>[]>(() => {
     const cols: ColumnDef<UserApi>[] = [
@@ -189,7 +189,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
             type="button"
             variant="ghost"
             size="xs"
-            onClick={() => openDelete(row.original)}
+            onClick={() => deleteDialog.open(row.original)}
           >
             {t("users.delete")}
           </Button>
@@ -198,7 +198,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     }
 
     return cols
-  }, [isAdmin, changeRole, openDelete, t])
+  }, [t, isAdmin, changeRole, deleteDialog])
 
   return (
     <div className="flex flex-col gap-4 p-6 text-sm">
@@ -237,15 +237,15 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
       />
 
       <Dialog
-        open={deleteTarget !== null}
+        open={deleteDialog.isOpen}
         title={t("users.deleteTitle")}
-        onClose={closeDelete}
+        onClose={deleteDialog.close}
       >
         <p className="text-sm text-muted-foreground">
-          {t("users.deleteBody", { name: deleteTarget?.name ?? "" })}
+          {t("users.deleteBody", { name: deleteDialog.data?.name ?? "" })}
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={closeDelete}>
+          <Button type="button" variant="outline" onClick={deleteDialog.close}>
             {t("common.cancel")}
           </Button>
           <Button
