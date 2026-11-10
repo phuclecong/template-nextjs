@@ -16,6 +16,7 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "@workspace/ui/components/button"
+import { ConfirmDialog } from "@workspace/ui/components/confirm-dialog"
 import { Dialog } from "@workspace/ui/components/dialog"
 import { Field, FieldError, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
@@ -381,23 +382,15 @@ export function DeleteTaskDialog({
   }
 
   return (
-    <Dialog open={open} title={t("taskDialog.deleteTitle")} onClose={onClose}>
-      <p className="text-sm text-muted-foreground">
-        {t("taskDialog.deleteBody", { title: task?.title ?? "" })}
-      </p>
-      <div className="mt-4 flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          {t("common.cancel")}
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={deleteMutation.mutation.isPending}
-          onClick={onConfirm}
-        >
-          {t("common.delete")}
-        </Button>
-      </div>
-    </Dialog>
+    <ConfirmDialog
+      open={open}
+      onClose={onClose}
+      title={t("taskDialog.deleteTitle")}
+      description={t("taskDialog.deleteBody", { title: task?.title ?? "" })}
+      confirmLabel={t("common.delete")}
+      cancelLabel={t("common.cancel")}
+      loading={deleteMutation.mutation.isPending}
+      onConfirm={onConfirm}
+    />
   )
 }

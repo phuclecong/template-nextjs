@@ -25,7 +25,7 @@ test("admin changes a user's role and deletes a user", async ({ page }) => {
   // Delete Mia Member.
   const miaRow = page.getByRole("row").filter({ hasText: "Mia Member" })
   await miaRow.getByRole("button", { name: "Delete" }).click()
-  const dialog = page.getByRole("dialog")
+  const dialog = page.getByRole("alertdialog")
   await expect(dialog).toBeVisible()
   await dialog.getByRole("button", { name: "Delete" }).click()
 

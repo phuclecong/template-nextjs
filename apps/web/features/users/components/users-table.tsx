@@ -14,7 +14,7 @@ import type { Role } from "@workspace/api/collections"
 import { DataTable } from "@workspace/shared-lib/components"
 import { useDialog, useTableState } from "@workspace/shared-lib/hooks"
 import { Button } from "@workspace/ui/components/button"
-import { Dialog } from "@workspace/ui/components/dialog"
+import { ConfirmDialog } from "@workspace/ui/components/confirm-dialog"
 import {
   Select,
   SelectContent,
@@ -215,28 +215,16 @@ export function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
         }}
       />
 
-      <Dialog
+      <ConfirmDialog
         open={deleteDialog.isOpen}
-        title={t("users.deleteTitle")}
         onClose={deleteDialog.close}
-      >
-        <p className="text-sm text-muted-foreground">
-          {t("users.deleteBody", { name: deleteDialog.data?.name ?? "" })}
-        </p>
-        <div className="mt-4 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={deleteDialog.close}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deleteMutation.mutation.isPending}
-            onClick={confirmDelete}
-          >
-            {t("common.delete")}
-          </Button>
-        </div>
-      </Dialog>
+        title={t("users.deleteTitle")}
+        description={t("users.deleteBody", { name: deleteDialog.data?.name ?? "" })}
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
+        loading={deleteMutation.mutation.isPending}
+        onConfirm={confirmDelete}
+      />
     </div>
   )
 }

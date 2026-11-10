@@ -57,7 +57,7 @@ test("admin creates, edits, and deletes a task", async ({ page }) => {
 
   // Delete the task; it disappears.
   await renamedRow.getByRole("button", { name: "Delete" }).click()
-  const deleteDialog = page.getByRole("dialog")
+  const deleteDialog = page.getByRole("alertdialog")
   await expect(deleteDialog).toBeVisible()
   await deleteDialog.getByRole("button", { name: "Delete" }).click()
 
