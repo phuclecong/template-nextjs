@@ -1,0 +1,3 @@
+# Feature folders: vertical slices under `features/*/`
+
+Each user-facing feature is a self-contained vertical slice under `apps/web/features/<feature>/` — an `index.tsx` view as the public entry, with `components/`, `hooks/`, and `utils/` added only where the feature needs them — while the cross-cutting app shell and providers stay in `apps/web/components/`. Chosen over a flat top-level `components/` directory or colocating feature code inside the `app/` route segments, because a feature (its view, table, filters, hooks, and local domain types) changes together and is hard to find when scattered across route folders.

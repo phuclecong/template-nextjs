@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { ROLE_OPTIONS } from "@/utils/users"
+import { ROLE_OPTIONS } from "@/features/users/utils"
 
 export function UsersFilterBar({
   searchValue,

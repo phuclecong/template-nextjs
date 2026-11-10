@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next"
 import {
   useCustomMutation,
   useDelete,
-  useGetIdentity,
   useInvalidate,
   useList,
   type HttpError,
@@ -23,38 +22,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { UsersFilterBar } from "@/components/users-filter-bar"
+import { UsersFilterBar } from "@/features/users/components/users-filter-bar"
+import {
+  CurrentUser,
+  ROLE_OPTIONS,
+  toUserCrudFilters,
+  UserRow,
+} from "@/features/users/utils"
 import { describeError } from "@/utils/http-error"
-import { ROLE_OPTIONS, toUserCrudFilters } from "@/utils/users"
-
-type UserApi = {
-  id: string
-  name: string
-  email: string
-  role: Role
-  createdAt: string
-}
-
-type CurrentUser = Omit<UserApi, "createdAt">
 
 const FILTER_KEYS = ["role"] as const
 
-export function UsersView() {
-  const { t } = useTranslation()
-  const { data: identity, isLoading } = useGetIdentity<CurrentUser>()
-
-  if (isLoading || !identity) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        {t("common.loading")}
-      </div>
-    )
-  }
-
-  return <UsersTable currentUser={identity} />
-}
-
-function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
+export function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const { t } = useTranslation()
 
   const {
@@ -79,7 +58,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     [q, filterValues]
   )
 
-  const usersQuery = useList<UserApi>({
+  const usersQuery = useList<UserRow>({
     resource: "users",
     pagination: { currentPage: page, pageSize },
     sorters,
@@ -90,10 +69,10 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   const invalidate = useInvalidate()
-  const roleMutation = useCustomMutation<UserApi, HttpError, { role: Role }>({})
-  const deleteMutation = useDelete<UserApi>({})
+  const roleMutation = useCustomMutation<UserRow, HttpError, { role: Role }>({})
+  const deleteMutation = useDelete<UserRow>({})
 
-  const deleteDialog = useDialog<UserApi>()
+  const deleteDialog = useDialog<UserRow>()
   // Bind `open` to a stable local so the `columns` memo below can depend on it
   // (a `useCallback`) rather than on the fresh `deleteDialog` object.
   const openDelete = deleteDialog.open
@@ -101,7 +80,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
   const isAdmin = currentUser.role === "admin"
 
   const changeRole = useCallback(
-    (user: UserApi, role: Role) => {
+    (user: UserRow, role: Role) => {
       if (role === user.role) return
       roleMutation.mutate(
         {
@@ -145,8 +124,8 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     )
   }, [deleteDialog.data, deleteDialog.close, deleteMutation, t])
 
-  const columns = useMemo<ColumnDef<UserApi>[]>(() => {
-    const cols: ColumnDef<UserApi>[] = [
+  const columns = useMemo<ColumnDef<UserRow>[]>(() => {
+    const cols: ColumnDef<UserRow>[] = [
       { accessorKey: "name", header: t("users.columns.name"), size: 220 },
       { accessorKey: "email", header: t("users.columns.email"), size: 300 },
       {
@@ -189,7 +168,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
             type="button"
             variant="ghost"
             size="xs"
-            onClick={() => deleteDialog.open(row.original)}
+            onClick={() => openDelete(row.original)}
           >
             {t("users.delete")}
           </Button>
@@ -198,7 +177,7 @@ function UsersTable({ currentUser }: { currentUser: CurrentUser }) {
     }
 
     return cols
-  }, [t, isAdmin, changeRole, deleteDialog])
+  }, [t, isAdmin, changeRole, openDelete])
 
   return (
     <div className="flex flex-col gap-4 p-6 text-sm">

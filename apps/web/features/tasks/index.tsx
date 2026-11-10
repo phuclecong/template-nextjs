@@ -3,7 +3,7 @@
 import { useTranslation } from "react-i18next"
 import { useGetIdentity } from "@refinedev/core"
 import { TasksTable } from "./components/tasks-table"
-import { CurrentUser } from "./utils"
+import { CurrentUser } from "@/features/users/utils"
 
 export function TasksView() {
   const { t } = useTranslation()

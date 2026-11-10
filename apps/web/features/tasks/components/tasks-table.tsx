@@ -15,7 +15,8 @@ import {
 } from "@/features/tasks/components/task-dialogs"
 import { useTaskBulkActions } from "@/features/tasks/hooks/use-task-bulk-actions"
 import { useTasks } from "@/features/tasks/hooks/use-tasks"
-import { toCrudFilters, type TaskRow, CurrentUser } from "@/features/tasks/utils"
+import { CurrentUser } from "@/features/users/utils"
+import { toCrudFilters, type TaskRow } from "@/features/tasks/utils"
 
 const FILTER_KEYS = [
   "status",
