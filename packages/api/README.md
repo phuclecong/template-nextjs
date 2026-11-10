@@ -120,6 +120,7 @@ All routes are under `/api` and use bearer auth unless noted.
 
 ```bash
 pnpm --filter @workspace/api generate:types  # regenerate src/generated/api.d.ts
+pnpm --filter @workspace/api view-openapi   # open the spec in Swagger UI (or pnpm run view-openapi from the repo root)
 pnpm --filter @workspace/api lint
 pnpm --filter @workspace/api format
 pnpm --filter @workspace/api typecheck

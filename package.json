@@ -12,7 +12,8 @@
     "test:e2eui": "pnpm --filter ./apps/web test:e2e --ui",
     "typecheck": "turbo typecheck",
     "storybook": "turbo storybook",
-    "build-storybook": "turbo build-storybook"
+    "build-storybook": "turbo build-storybook",
+    "view-openapi": "pnpm --filter @workspace/api view-openapi"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

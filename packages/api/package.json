@@ -13,6 +13,7 @@
   },
   "scripts": {
     "generate:types": "openapi-typescript openapi.yaml -o src/generated/api.d.ts",
+    "view-openapi": "node scripts/view-openapi.mjs",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,yaml,json,md}\"",
     "typecheck": "tsc --noEmit",
@@ -31,6 +32,7 @@
     "eslint": "^9",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.8.3",
+    "swagger-ui-dist": "^5.34.1",
     "typescript": "^5",
     "vitest": "^5.1.0"
   }

@@ -21,16 +21,17 @@ A runnable reference dashboard — Users, Tasks, and Settings pages — built on
 
 # Command
 
-| Command           | Description                                      |
-| ----------------- | ------------------------------------------------ |
-| `pnpm install`    | Install dependencies for all workspaces.         |
-| `pnpm dev`        | Start the `apps/web` Next.js development server. |
-| `pnpm build`      | Build `apps/web` for production.                 |
-| `pnpm lint`       | Run linting across the monorepo.                 |
-| `pnpm test`       | Run Vitest unit tests.                           |
-| `pnpm test:e2e`   | Run Playwright end-to-end tests.                 |
-| `pnpm test:e2eui` | Run Playwright end-to-end tests in UI mode.      |
-| `pnpm storybook`  | Start Storybook for `packages/ui`.               |
+| Command             | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| `pnpm install`      | Install dependencies for all workspaces.         |
+| `pnpm dev`          | Start the `apps/web` Next.js development server. |
+| `pnpm build`        | Build `apps/web` for production.                 |
+| `pnpm lint`         | Run linting across the monorepo.                 |
+| `pnpm test`         | Run Vitest unit tests.                           |
+| `pnpm test:e2e`     | Run Playwright end-to-end tests.                 |
+| `pnpm test:e2eui`   | Run Playwright end-to-end tests in UI mode.      |
+| `pnpm storybook`    | Start Storybook for `packages/ui`.               |
+| `pnpm view-openapi` | View the OpenAPI 3.0 contract.                   |
 
 ---
 
@@ -429,7 +430,7 @@ a static export.
 
 Skills are packaged instructions for Claude Code: a focused recipe the agent follows when a task matches. They live in [`.claude/skills/`](../.claude/skills/) at the repo root, so they're available in every agent session in this repo.
 
-This page teaches you how to _drive_ the three CRUD skills — `create-table`, `create-form`, and `create-dialog`. (For how to _write_ a skill, see [Writing a new skill](#writing-a-new-skill).)
+This page show you how to _drive_ the three CRUD skills — `create-table`, `create-form`
 
 ## Two ways to use a skill
 

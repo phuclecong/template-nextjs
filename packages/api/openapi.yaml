@@ -7,7 +7,7 @@ info:
     the single source of truth: it generates the MSW mock handlers, the
     TypeScript client types, and the artifact handed to the FastAPI team.
 servers:
-  - url: /api
+  - url: /api/v1
 tags:
   - name: auth
   - name: users
@@ -38,6 +38,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "409":
           $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /auth/login:
     post:
@@ -62,6 +64,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /auth/refresh:
     post:
@@ -86,6 +90,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
   /auth/logout:
     post:
@@ -148,6 +154,21 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/me:
+    get:
+      tags: [users]
+      operationId: getCurrentUser
+      summary: Get the authenticated user's profile
+      responses:
+        "200":
+          description: The authenticated user.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -325,6 +346,27 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   /tasks/{id}:
+    get:
+      tags: [tasks]
+      operationId: getTask
+      summary: Get a task by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The task.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
     patch:
       tags: [tasks]
       operationId: updateTask
@@ -405,14 +447,29 @@ components:
       enum: [todo, in-progress, done, blocked]
     Error:
       type: object
-      required: [code, message]
+      required: [type, title, status, detail]
       properties:
+        type:
+          type: string
+          format: uri
+          description: A URI reference identifying the problem type.
+          example: "https://api.example.com/problems/not-found"
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+          example: Resource not found.
+        status:
+          type: integer
+          description: The HTTP status code.
+          example: 404
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence.
+          example: No task exists with id 123.
         code:
           type: string
+          description: Stable machine-readable code. One of validation_error, unauthorized, forbidden, not_found, conflict, too_many_requests, internal_error.
           example: not_found
-        message:
-          type: string
-          example: Resource not found.
     User:
       type: object
       required: [id, name, email, role, createdAt]
@@ -469,9 +526,11 @@ components:
           type: string
     RefreshResponse:
       type: object
-      required: [accessToken]
+      required: [accessToken, refreshToken]
       properties:
         accessToken:
+          type: string
+        refreshToken:
           type: string
     UpdateRoleRequest:
       type: object
@@ -527,7 +586,6 @@ components:
         assigneeId:
           type: string
           nullable: true
-          description: Defaults to the caller when omitted; `null` creates an unassigned task.
         dueDate:
           type: string
           format: date
@@ -631,6 +689,12 @@ components:
             $ref: "#/components/schemas/Error"
     Conflict:
       description: The request conflicts with existing state.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    TooManyRequests:
+      description: The request rate limit has been exceeded.
       content:
         application/json:
           schema:

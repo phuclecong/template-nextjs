@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the authenticated user's profile */
+        get: operations["getCurrentUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{id}/role": {
         parameters: {
             query?: never;
@@ -165,7 +182,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get a task by id */
+        get: operations["getTask"];
         put?: never;
         post?: never;
         /** Delete a task (members may only delete their own tasks) */
@@ -202,10 +220,32 @@ export interface components {
         /** @enum {string} */
         Status: "todo" | "in-progress" | "done" | "blocked";
         Error: {
-            /** @example not_found */
-            code: string;
-            /** @example Resource not found. */
-            message: string;
+            /**
+             * Format: uri
+             * @description A URI reference identifying the problem type.
+             * @example https://api.example.com/problems/not-found
+             */
+            type: string;
+            /**
+             * @description A short, human-readable summary of the problem type.
+             * @example Resource not found.
+             */
+            title: string;
+            /**
+             * @description The HTTP status code.
+             * @example 404
+             */
+            status: number;
+            /**
+             * @description A human-readable explanation specific to this occurrence.
+             * @example No task exists with id 123.
+             */
+            detail: string;
+            /**
+             * @description Stable machine-readable code. One of validation_error, unauthorized, forbidden, not_found, conflict, too_many_requests, internal_error.
+             * @example not_found
+             */
+            code?: string;
         };
         User: {
             id: string;
@@ -239,6 +279,7 @@ export interface components {
         };
         RefreshResponse: {
             accessToken: string;
+            refreshToken: string;
         };
         UpdateRoleRequest: {
             role: components["schemas"]["Role"];
@@ -264,7 +305,6 @@ export interface components {
             status?: components["schemas"]["Status"];
             /** @enum {string|null} */
             priority?: "low" | "medium" | "high" | null;
-            /** @description Defaults to the caller when omitted; `null` creates an unassigned task. */
             assigneeId?: string | null;
             /** Format: date */
             dueDate?: string | null;
@@ -350,6 +390,15 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description The request rate limit has been exceeded. */
+        TooManyRequests: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
     };
     parameters: never;
     requestBodies: never;
@@ -382,6 +431,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             409: components["responses"]["Conflict"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     login: {
@@ -408,6 +458,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     refresh: {
@@ -434,6 +485,7 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     logout: {
@@ -485,6 +537,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["User"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getCurrentUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The authenticated user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
                 };
             };
             401: components["responses"]["Unauthorized"];
@@ -635,6 +708,30 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+        };
+    };
+    getTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The task. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     deleteTask: {
